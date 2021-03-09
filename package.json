@@ -1,0 +1,69 @@
+{
+	"name": "beautify-beacon",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next",
+		"build": "next build",
+		"start": "next start",
+		"svg": "svgr -d src/components/icons src/components/icons/svgs",
+		"format": "prettier --write \"**/*.{js,jsx,json,ts,tsx,mdx,css,scss,md}\"",
+		"format:check": "prettier --check \"**/*.{js,jsx,json,ts,tsx,mdx,css,scss,md}\"",
+		"lint": "eslint . --ignore-path .gitignore --ext .ts,.tsx,.js,.jsx"
+	},
+	"dependencies": {
+		"classnames": "^2.2.6",
+		"firebase": "^8.2.9",
+		"framer-motion": "^3.6.7",
+		"next": "10.0.7",
+		"react": "17.0.1",
+		"react-dom": "17.0.1",
+		"react-query": "^3.12.1",
+		"react-toastify": "^7.0.3",
+		"request": "^2.88.2",
+		"styled-components": "^5.2.1",
+		"styled-reset": "^4.3.4"
+	},
+	"devDependencies": {
+		"@svgr/cli": "^5.5.0",
+		"babel-plugin-macros": "^3.0.1",
+		"eslint": "^7.20.0",
+		"eslint-config-prettier": "^8.1.0",
+		"eslint-config-standard": "^16.0.2",
+		"eslint-plugin-import": "^2.22.1",
+		"eslint-plugin-node": "^11.1.0",
+		"eslint-plugin-prettier": "^3.3.1",
+		"eslint-plugin-promise": "^4.3.1",
+		"eslint-plugin-react": "^7.22.0",
+		"husky": "^4.3.8",
+		"lint-staged": "^10.5.4",
+		"prettier": "^2.2.1"
+	},
+	"lint-staged": {
+		"**/*.{json,mdx,css,scss,md}": [
+			"prettier --write"
+		],
+		"**/*.{js,jsx,ts,tsx}": [
+			"eslint --fix"
+		],
+		"*.{ts,tsx,js,jsx}": "eslint --cache --fix"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"license": "MIT",
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	}
+}
