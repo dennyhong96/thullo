@@ -1,8 +1,8 @@
 import { StyledButton } from "./styles";
 
-const Button = ({ children, Icon }) => {
+const Button = ({ children, Icon, ...props }) => {
 	return (
-		<StyledButton>
+		<StyledButton {...props}>
 			{!!Icon && Icon}
 			<span>{children}</span>
 		</StyledButton>
