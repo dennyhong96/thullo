@@ -76,7 +76,6 @@ const GlobalStyles = createGlobalStyle`
     font-weight: 500;
     font-size: 1.6rem;
     line-height: 1.375;
-    -spacing: -0.035em;
   }
 
   h5 {
