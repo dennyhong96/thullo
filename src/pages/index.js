@@ -2,7 +2,7 @@ import Avatar from "@/components/avatar";
 import BoardCard from "@/components/boardCard";
 import Button from "@/components/button";
 import { IconAdd } from "@/components/icons";
-import Modal from "@/components/modal";
+import NewBoardModal from "@/components/newBoardModal";
 import { useState } from "react";
 
 const Home = () => {
@@ -18,7 +18,7 @@ const Home = () => {
 				<BoardCard avatars={[<Avatar key={0} />]} />
 			</div>
 
-			<Modal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
+			<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
 		</div>
 	);
 };
