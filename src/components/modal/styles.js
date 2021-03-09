@@ -18,6 +18,7 @@ export const StyledModal = styled.div`
 		position: absolute;
 		top: 1rem;
 		right: 1rem;
+		z-index: 1;
 	}
 
 	/* BODY */
