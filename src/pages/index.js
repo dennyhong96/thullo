@@ -1,24 +1,41 @@
+import { useState } from "react";
+import { useQuery } from "react-query";
+
+import { listBoards } from "@/lib/api";
 import Avatar from "@/components/avatar";
 import BoardCard from "@/components/boardCard";
 import Button from "@/components/button";
-import { IconAdd } from "@/components/icons";
 import NewBoardModal from "@/components/newBoardModal";
-import { useState } from "react";
+import { IconAdd } from "@/components/icons";
 
 const Home = () => {
 	const [isOpen, setIsOpen] = useState(false);
+
+	const { data: boards, isLoading, error } = useQuery("boards", listBoards);
+
+	if (isLoading) return <p>Loading...</p>;
+	if (error) console.error(error);
+
 	return (
-		<div>
+		<div style={{ padding: "4rem" }}>
 			<Button>Hello</Button>
+
 			<Button onClick={setIsOpen.bind(this, true)} Icon={<IconAdd />}>
 				Add
 			</Button>
 
-			<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)" }}>
-				<BoardCard avatars={[<Avatar key={0} />]} />
-			</div>
-
 			<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
+
+			<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
+				{boards.map(board => (
+					<BoardCard
+						key={board.id}
+						title={board.title}
+						cover={board.cover}
+						avatars={[<Avatar key={0} />]}
+					/>
+				))}
+			</div>
 		</div>
 	);
 };

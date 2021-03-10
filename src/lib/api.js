@@ -1,54 +1,43 @@
 import firebase from "./firebase";
 
+import toSlug from "@/utils/toSlug";
+
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-export const listClients = async () => {
-	// List all clients from `clients` collection
-	const clientSnapshots = await db.collection("clients").get();
-	const clients = [];
-	clientSnapshots.forEach(doc => {
-		clients.push({ id: doc.id, ...doc.data() });
+// LIST ALL BOARDS
+export const listBoards = async () => {
+	const boardsSnapshots = await db.collection("boards").get();
+
+	const boards = [];
+	boardsSnapshots.forEach(doc => {
+		boards.push({ id: doc.id, ...doc.data() });
 	});
 
-	// List 1 Logo from each client's `logos` sub-collection
-	let logos = (
-		await Promise.all(
-			clients.map(async ({ id: clientId }) => {
-				const logoSnapshots = await db
-					.collection("clients")
-					.doc(clientId)
-					.collection("logos")
-					.limit(1)
-					.get();
-				const logos = [];
-				logoSnapshots.forEach(doc => {
-					logos.push({
-						clientId,
-						id: doc.id,
-						...doc.data(),
-					});
-				});
-				return logos;
-			}),
-		)
-	).flat(); // .flat() because listed one Logo from each client, one logo came back in an array
-
-	// Get the file download url from Google Cloud Storage URI, put in each logo object
-	logos = await Promise.all(
-		logos.map(async logo => ({
-			...logo,
-			src: await storage.refFromURL(logo.url).getDownloadURL(),
+	// Get cover src from filePath
+	return await Promise.all(
+		boards.map(async board => ({
+			...board,
+			cover: await storage.ref(board.coverPath).getDownloadURL(),
 		})),
 	);
+};
 
-	// Put logo object into each client
-	const clientWithLogo = clients.map(client => ({
-		...client,
-		logo: { ...logos.find(({ clientId }) => clientId === client.id) },
-	}));
+// CREATE A NEW BOARD
+export const createBoard = async ({ id, title, isPrivate, cover }) => {
+	const titleSlug = toSlug(title);
+	const fileExt = cover.type.split("/")[1];
+	const filePath = `/boards/${titleSlug}.${fileExt}`;
 
-	return clientWithLogo;
+	await Promise.all([
+		await storage.ref(filePath).put(cover),
+		await db.collection("boards").doc(id).set({
+			title,
+			isPrivate,
+			slug: titleSlug,
+			coverPath: filePath,
+		}),
+	]);
 };
 
 export const getClientOverviewBySlug = async ({ slug }) => {

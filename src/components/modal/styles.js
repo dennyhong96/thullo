@@ -8,7 +8,7 @@ export const StyledModal = styled.div`
 	margin-top: 10rem;
 	transform: translate(-50%, 0);
 	width: 90%;
-	max-width: 50rem;
+	max-width: 35rem;
 	background-color: #fff;
 	box-shadow: ${({ theme }) => theme.boxShadow.card};
 	border-radius: ${({ theme }) => theme.borderRadius.card};
@@ -23,7 +23,7 @@ export const StyledModal = styled.div`
 
 	/* BODY */
 	& > div {
-		padding: 4rem;
+		padding: 3rem;
 	}
 `;
 

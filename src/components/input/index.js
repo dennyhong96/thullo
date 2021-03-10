@@ -1,7 +1,11 @@
+import { forwardRef } from "react";
+
 import { StyledInput } from "./styles";
 
-const Input = ({ placeholder = "Add board title", ...props }) => {
-	return <StyledInput placeholder={placeholder} {...props} />;
-};
+const Input = forwardRef(({ placeholder = "Add board title", ...props }, ref) => {
+	return <StyledInput ref={ref} placeholder={placeholder} {...props} />;
+});
+
+Input.displayName = "Input";
 
 export default Input;
