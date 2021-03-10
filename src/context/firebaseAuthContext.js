@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer, useRef } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import { toast } from "react-toastify";
 
 import firebase from "@/lib/firebase";
