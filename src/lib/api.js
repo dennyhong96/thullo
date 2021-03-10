@@ -36,6 +36,7 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 			isPrivate,
 			slug: titleSlug,
 			coverPath: filePath,
+			createdAt: firebase.firestore.Timestamp.now(),
 		}),
 	]);
 };

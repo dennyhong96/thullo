@@ -42,6 +42,9 @@ const NewBoardModal = ({ ...props }) => {
 						isPrivate,
 						slug,
 						cover: coverSrc,
+						createdAt: {
+							seconds: Date.now(),
+						},
 					},
 				]);
 			},
@@ -57,6 +60,8 @@ const NewBoardModal = ({ ...props }) => {
 		// Close modal and reset form
 		setTitle("");
 		setIsPrivate(false);
+		setCover(null);
+		setCoverPreviewSrc("");
 		onClose();
 	};
 	const onError = (errors, e) => console.log(errors, e);
