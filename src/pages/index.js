@@ -27,14 +27,19 @@ const Home = () => {
 			<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
 
 			<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
-				{boards.map(board => (
-					<BoardCard
-						key={board.id}
-						title={board.title}
-						cover={board.cover}
-						avatars={[<Avatar key={0} />]}
-					/>
-				))}
+				{boards
+					.slice()
+					// SORT BY CREATED AT
+					.sort((a, b) => new Date(a.createdAt.seconds) - new Date(b.createdAt.seconds))
+					.map(board => (
+						<BoardCard
+							href={`/boards/${board.slug}`}
+							key={board.id}
+							title={board.title}
+							cover={board.cover}
+							avatars={[<Avatar key={0} />]}
+						/>
+					))}
 			</div>
 		</div>
 	);

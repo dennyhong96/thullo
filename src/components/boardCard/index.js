@@ -4,12 +4,13 @@ import Image from "@/components/image";
 import { StyledBoardCard } from "./styles";
 
 const BoardCard = ({
+	href = "/",
 	title = "Devchallengers Board",
 	avatars = [],
 	cover = "http://via.placeholder.com/1280x960?text=image",
 }) => {
 	return (
-		<Link href="/" passHref>
+		<Link href={href} passHref>
 			<StyledBoardCard>
 				{/* BOARD IMAGE */}
 				<Image aspectRatio="60%" src={cover} />
