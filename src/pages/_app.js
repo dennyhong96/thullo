@@ -1,5 +1,6 @@
 import { ThemeProvider } from "styled-components";
 import { ToastContainer } from "react-toastify";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 import { FirebaseAuthProvider } from "@/context/firebaseAuthContext";
 import GlobalStyles from "@/styles/globalStyles";
@@ -9,15 +10,19 @@ import "react-toastify/dist/ReactToastify.css";
 import Header from "@/components/header";
 
 function MyApp({ Component, pageProps }) {
+	const client = new QueryClient();
+
 	return (
-		<FirebaseAuthProvider>
-			<ThemeProvider theme={theme}>
-				<GlobalStyles />
-				<Header />
-				<Component {...pageProps} />
-				<ToastContainer autoClose={2500} />
-			</ThemeProvider>
-		</FirebaseAuthProvider>
+		<QueryClientProvider client={client}>
+			<FirebaseAuthProvider>
+				<ThemeProvider theme={theme}>
+					<GlobalStyles />
+					<Header />
+					<Component {...pageProps} />
+					<ToastContainer autoClose={2500} />
+				</ThemeProvider>
+			</FirebaseAuthProvider>
+		</QueryClientProvider>
 	);
 }
 
