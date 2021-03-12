@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
@@ -9,9 +9,12 @@ import generateId from "@/utils/generateId";
 import Button from "@/components/button";
 import { IconAdd } from "@/components/icons";
 import Input from "@/components/input";
-import { StyledList, TaskCard } from "./styles";
+import { StyledList } from "./styles";
+import TaskCard from "@/components/taskCard";
+import TaskListInner from "../taskListInner";
+import { Droppable } from "react-beautiful-dnd";
 
-const TaskList = ({ listId, listSlug, title, tasks }) => {
+const TaskList = forwardRef(({ listId, listSlug, title, tasks, placeholder }, ref) => {
 	const router = useRouter();
 	const boardSlug = router.query.slug;
 	const client = useQueryClient();
@@ -83,11 +86,23 @@ const TaskList = ({ listId, listSlug, title, tasks }) => {
 			)}
 
 			{/* TASKS */}
-			{tasks?.map(task => (
-				<TaskCard key={task.id}>{task.title}</TaskCard>
-			))}
+			<Droppable droppableId={listId}>
+				{(provider, snapshot) => (
+					<TaskListInner
+						listId={listId}
+						isDraggingOver={snapshot.isDraggingOver}
+						{...provider.droppableProps}
+						ref={provider.innerRef}
+					>
+						{tasks?.map((task, idx) => (
+							<TaskCard key={task.id} index={idx} listId={listId} {...task} />
+						))}
+						{provider.placeholder}
+					</TaskListInner>
+				)}
+			</Droppable>
 		</StyledList>
 	);
-};
+});
 
 export default TaskList;

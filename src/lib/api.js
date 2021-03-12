@@ -74,13 +74,13 @@ export const createList = async ({ boardSlug, id, title }) => {
 		.doc(boardId)
 		.collection("lists")
 		.doc(id)
-		.set({ title, slug: listSlug });
+		.set({ title, slug: listSlug, order: [] });
 };
 
 // LIST ALL TASKS OF A TASK LIST
 export const listTasksByList = async ({ boardSlug, listSlug }) => {
 	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
-	const { id: listId } = await getListBySlug({ boardId, slug: listSlug });
+	const { id: listId, order: orderedTaskIds } = await getListBySlug({ boardId, slug: listSlug });
 
 	const taskSnapshots = await db
 		.collection("boards")
@@ -90,33 +90,44 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 		.collection("tasks")
 		.get();
 
-	const tasks = [];
+	const tasks = {};
 	taskSnapshots.forEach(doc => {
-		tasks.push({ id: doc.id, ...doc.data() });
+		const id = doc.id;
+		tasks[id] = { id, ...doc.data() };
 	});
 
-	return tasks;
+	return orderedTaskIds.map(taskId => tasks[taskId]);
 };
 
 // ADD A NEW TASK TO TASK LIST
 export const createTask = async ({ boardSlug, listSlug, id, title }) => {
 	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
-	const { id: listId } = await getListBySlug({ boardId, slug: listSlug });
+	const list = await getListBySlug({ boardId, slug: listSlug });
+	const { id: listId, order } = list;
 
 	const taskSlug = toSlug(title);
 
-	await db
-		.collection("boards")
-		.doc(boardId)
-		.collection("lists")
-		.doc(listId)
-		.collection("tasks")
-		.doc()
-		.set({
-			id,
-			title,
-			slug: taskSlug,
-		});
+	await Promise.all([
+		// Store task order
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.set({ order: [...order, id] }, { merge: true }),
+		// Store new task to list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(id)
+			.set({
+				title,
+				slug: taskSlug,
+			}),
+	]);
 };
 
 // GET A BOARD BY SLUG
