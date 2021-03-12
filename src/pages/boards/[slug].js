@@ -71,7 +71,8 @@ const Boards = () => {
 
 					// Handle new list
 					case newListId: {
-						const newTasks = [...list.tasks];
+						// Task list could be empty first
+						const newTasks = [...(list.tasks || [])];
 						newTasks.splice(newIndex, 0, taskDropped);
 						return { ...list, tasks: newTasks };
 					}

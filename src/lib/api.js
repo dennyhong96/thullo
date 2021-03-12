@@ -37,27 +37,29 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 			slug: titleSlug,
 			coverPath: filePath,
 			createdAt: firebase.firestore.Timestamp.now(),
+			order: [],
 		}),
 	]);
 };
 
 // LIST ALL TASK LISTS OF A BOARD
 export const listListsByBoard = async ({ boardSlug }) => {
-	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
 
 	const listSnapshots = await db.collection("boards").doc(boardId).collection("lists").get();
 
-	const lists = [];
+	const lists = {};
 	listSnapshots.forEach(doc => {
-		lists.push({ id: doc.id, ...doc.data() });
+		const id = doc.id;
+		lists[id] = { id, ...doc.data() };
 	});
 
 	return await Promise.all(
-		lists.map(async list => ({
-			...list,
+		listsOrder.map(async listId => ({
+			...lists[listId],
 			tasks: await listTasksByList({
 				boardSlug,
-				listSlug: list.slug,
+				listSlug: lists[listId].slug,
 			}),
 		})),
 	);
@@ -65,16 +67,22 @@ export const listListsByBoard = async ({ boardSlug }) => {
 
 // ADD A TASK LIST TO A BOARD
 export const createList = async ({ boardSlug, id, title }) => {
-	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
 
 	const listSlug = toSlug(title);
 
-	await db
-		.collection("boards")
-		.doc(boardId)
-		.collection("lists")
-		.doc(id)
-		.set({ title, slug: listSlug, order: [] });
+	await Promise.all([
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.set({ order: [...listsOrder, id] }, { merge: true }),
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(id)
+			.set({ title, slug: listSlug, order: [] }),
+	]);
 };
 
 // LIST ALL TASKS OF A TASK LIST
