@@ -65,7 +65,7 @@ const NewBoardModal = ({ ...props }) => {
 		setCoverPreviewSrc("");
 		onClose();
 	};
-	const onError = (errors, e) => console.log(errors, e);
+	const onError = (errors, e) => console.error(errors, e);
 
 	// Handle board title change
 	const handleTitle = evt => setTitle(evt.target.value);

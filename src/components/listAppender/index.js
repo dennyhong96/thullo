@@ -24,14 +24,18 @@ const ListAppender = () => {
 		// OPTIMISTIC UI
 		onMutate({ id, title }) {
 			const slug = toSlug(title);
-			client.setQueryData(["listsByBoard", boardSlug], old => [
-				...old,
-				{
-					id,
-					title,
-					slug,
-				},
-			]);
+			client.setQueryData(["listsByBoard", boardSlug], board => ({
+				...board,
+				lists: [
+					...(board.lists || []),
+					{
+						id,
+						title,
+						slug,
+					},
+				],
+				order: [...(board.order || []), id],
+			}));
 		},
 	});
 

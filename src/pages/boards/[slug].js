@@ -2,10 +2,10 @@ import { useRouter } from "next/router";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import styled from "styled-components";
 
-import { listListsByBoard, reorderTaskList } from "@/lib/api";
+import { listListsByBoard, reorderLists, reorderTaskList } from "@/lib/api";
 import TaskList from "@/components/taskList";
 import ListAppender from "@/components/listAppender";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 const StyledContainer = styled.div`
 	overflow-x: auto;
@@ -19,7 +19,7 @@ const Boards = () => {
 	const boardSlug = router.query.slug;
 	const client = useQueryClient();
 
-	const { data: lists, error, isLoading } = useQuery(
+	const { data: board, error, isLoading } = useQuery(
 		["listsByBoard", boardSlug],
 		() => listListsByBoard({ boardSlug }),
 		{ enabled: !!boardSlug },
@@ -27,53 +27,88 @@ const Boards = () => {
 
 	const mutation = useMutation(
 		// Update DB
-		({ taskId, newListId, newIndex, oldListId, oldIndex }) => {
-			reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
+		({ type, props }) => {
+			if (type === "TASKS") {
+				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
+				return reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
+			}
+
+			const { listId, newIndex, oldIndex } = props;
+			reorderLists({ boardSlug, listId, newIndex, oldIndex });
 		},
 		// Update local cache
 		{
-			onMutate({ taskId, newListId, newIndex, oldListId, oldIndex }) {
-				client.setQueryData(["listsByBoard", boardSlug], lists => {
+			onMutate({ type, props }) {
+				if (type === "LISTS") {
+					const { newIndex, oldIndex } = props;
+					return client.setQueryData(["listsByBoard", boardSlug], board => {
+						const { order } = board;
+
+						// Swap order
+						const newOrder = [...order];
+						newOrder[newIndex] = order[oldIndex];
+						newOrder[oldIndex] = order[newIndex];
+
+						const newLists = [...board.lists];
+						newLists[oldIndex] = board.lists[newIndex];
+						newLists[newIndex] = board.lists[oldIndex];
+
+						return {
+							...board,
+							order: newOrder,
+							// Swap list index
+							lists: newLists,
+						};
+					});
+				}
+
+				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
+				client.setQueryData(["listsByBoard", boardSlug], board => {
 					const taskDropped = {
-						...lists.find(list => list.id === oldListId).tasks.find(task => task.id === taskId),
+						...board.lists
+							.find(list => list.id === oldListId)
+							.tasks.find(task => task.id === taskId),
 					};
 
-					return lists.map(list => {
-						switch (list.id) {
-							// Handle old list
-							case oldListId: {
-								// Moved with in the same list
-								if (oldListId === newListId) {
-									return {
-										...list,
-										tasks: list.tasks.map((task, idx) =>
-											idx === newIndex
-												? taskDropped
-												: idx === oldIndex
-												? { ...list.tasks[newIndex] }
-												: { ...task },
-										),
-									};
+					return {
+						...board,
+						lists: board.lists.map(list => {
+							switch (list.id) {
+								// Handle old list
+								case oldListId: {
+									// Moved with in the same list
+									if (oldListId === newListId) {
+										return {
+											...list,
+											tasks: list.tasks.map((task, idx) =>
+												idx === newIndex
+													? taskDropped
+													: idx === oldIndex
+													? { ...list.tasks[newIndex] }
+													: { ...task },
+											),
+										};
+									}
+
+									// Moved across lists
+									return { ...list, tasks: list.tasks.filter(task => task.id !== taskId) };
 								}
 
-								// Moved across lists
-								return { ...list, tasks: list.tasks.filter(task => task.id !== taskId) };
-							}
+								// Handle new list
+								case newListId: {
+									// Task list could be empty first
+									const newTasks = [...(list.tasks || [])];
+									newTasks.splice(newIndex, 0, taskDropped);
+									return { ...list, tasks: newTasks };
+								}
 
-							// Handle new list
-							case newListId: {
-								// Task list could be empty first
-								const newTasks = [...(list.tasks || [])];
-								newTasks.splice(newIndex, 0, taskDropped);
-								return { ...list, tasks: newTasks };
+								// Handle other lists
+								default: {
+									return { ...list };
+								}
 							}
-
-							// Handle other lists
-							default: {
-								return { ...list };
-							}
-						}
-					});
+						}),
+					};
 				});
 			},
 		},
@@ -83,17 +118,40 @@ const Boards = () => {
 	if (error) console.error(error);
 
 	const onDragEnd = result => {
-		const { destination, source, draggableId: taskId } = result;
+		const { destination, type } = result;
 		// No destination
 		if (!destination) return;
 
-		const { droppableId: newListId, index: newIndex } = destination;
-		const { droppableId: oldListId, index: oldIndex } = source;
+		switch (type) {
+			// Tasks re-ordered
+			case "TASKS": {
+				const { destination, source, draggableId: taskId } = result;
+				const { droppableId: newListId, index: newIndex } = destination;
+				const { droppableId: oldListId, index: oldIndex } = source;
 
-		// Dropped back to source location
-		if (newListId === oldListId && newIndex === oldIndex) return;
+				// Dropped back to source location
+				if (newListId === oldListId && newIndex === oldIndex) return;
 
-		mutation.mutate({ taskId, newListId, newIndex, oldListId, oldIndex });
+				return mutation.mutate({
+					type: "TASKS",
+					props: { taskId, newListId, newIndex, oldListId, oldIndex },
+				});
+			}
+
+			// Lists re-ordered
+			case "LISTS": {
+				const { destination, source, draggableId: listId } = result;
+				const { index: newIndex } = destination;
+				const { index: oldIndex } = source;
+				if (newIndex === oldIndex) return;
+
+				return mutation.mutate({ type: "LISTS", props: { listId, newIndex, oldIndex } });
+			}
+
+			default: {
+				break;
+			}
+		}
 	};
 
 	const onDragStart = () => {};
@@ -101,24 +159,30 @@ const Boards = () => {
 	const onDragUpdate = () => {};
 
 	return (
-		<StyledContainer>
-			{/* BACKLOG LIST */}
-			<DragDropContext onDragStart={onDragStart} onDragUpdat={onDragUpdate} onDragEnd={onDragEnd}>
-				{lists?.map((list, idx) => (
-					<TaskList
-						key={list.id}
-						index={idx}
-						listId={list.id}
-						title={list.title}
-						tasks={list.tasks}
-						listSlug={list.slug}
-					/>
-				))}
-			</DragDropContext>
+		<DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
+			<Droppable droppableId="task-lists" direction="horizontal" type="LISTS">
+				{provided => (
+					<StyledContainer {...provided.droppableProps} ref={provided.innerRef}>
+						{/* BACKLOG LIST */}
 
-			{/* LIST APPENDER BUTTON */}
-			<ListAppender />
-		</StyledContainer>
+						{board?.lists?.map((list, idx) => (
+							<TaskList
+								key={list.id}
+								index={idx}
+								listId={list.id}
+								title={list.title}
+								tasks={list.tasks}
+								listSlug={list.slug}
+							/>
+						))}
+						{provided.placeholder}
+
+						{/* LIST APPENDER BUTTON */}
+						<ListAppender />
+					</StyledContainer>
+				)}
+			</Droppable>
+		</DragDropContext>
 	);
 };
 

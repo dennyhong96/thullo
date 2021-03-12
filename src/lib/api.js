@@ -44,7 +44,8 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 
 // LIST ALL TASK LISTS OF A BOARD
 export const listListsByBoard = async ({ boardSlug }) => {
-	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
+	const board = await getBoardBySlug({ slug: boardSlug });
+	const { id: boardId, order: listsOrder } = board;
 
 	const listSnapshots = await db.collection("boards").doc(boardId).collection("lists").get();
 
@@ -54,15 +55,18 @@ export const listListsByBoard = async ({ boardSlug }) => {
 		lists[id] = { id, ...doc.data() };
 	});
 
-	return await Promise.all(
-		listsOrder.map(async listId => ({
-			...lists[listId],
-			tasks: await listTasksByList({
-				boardSlug,
-				listSlug: lists[listId].slug,
-			}),
-		})),
-	);
+	return {
+		...board,
+		lists: await Promise.all(
+			listsOrder.map(async listId => ({
+				...lists[listId],
+				tasks: await listTasksByList({
+					boardSlug,
+					listSlug: lists[listId].slug,
+				}),
+			})),
+		),
+	};
 };
 
 // RE-ORDER TASK
@@ -86,7 +90,6 @@ export const reorderTaskList = async ({
 		.get()
 		.then(doc => ({ id: doc.id, ...doc.data() }));
 
-	console.log({ oldList });
 	const oldListReordered = [...oldList.order];
 	oldListReordered.splice(oldIndex, 1);
 
@@ -256,4 +259,11 @@ export const getListBySlug = async ({ boardId, slug }) => {
 	});
 
 	return lists[0];
+};
+
+export const reorderLists = async ({ boardSlug, listId, newIndex, oldIndex }) => {
+	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
+	const newListsOrder = listsOrder.filter(id => id !== listId);
+	newListsOrder.splice(newIndex, 0, listId);
+	await db.collection("boards").doc(boardId).set({ order: newListsOrder }, { merge: true });
 };
