@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import styled from "styled-components";
 
-import { listListsByBoard } from "@/lib/api";
+import { listListsByBoard, reorderTaskList } from "@/lib/api";
 import TaskList from "@/components/taskList";
 import ListAppender from "@/components/listAppender";
 import { DragDropContext } from "react-beautiful-dnd";
@@ -25,6 +25,60 @@ const Boards = () => {
 		{ enabled: !!boardSlug },
 	);
 
+	const mutation = useMutation(
+		// Update DB
+		({ taskId, newListId, newIndex, oldListId, oldIndex }) => {
+			reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
+		},
+		// Update local cache
+		{
+			onMutate({ taskId, newListId, newIndex, oldListId, oldIndex }) {
+				client.setQueryData(["listsByBoard", boardSlug], lists => {
+					const taskDropped = {
+						...lists.find(list => list.id === oldListId).tasks.find(task => task.id === taskId),
+					};
+
+					return lists.map(list => {
+						switch (list.id) {
+							// Handle old list
+							case oldListId: {
+								// Moved with in the same list
+								if (oldListId === newListId) {
+									return {
+										...list,
+										tasks: list.tasks.map((task, idx) =>
+											idx === newIndex
+												? taskDropped
+												: idx === oldIndex
+												? { ...list.tasks[newIndex] }
+												: { ...task },
+										),
+									};
+								}
+
+								// Moved across lists
+								return { ...list, tasks: list.tasks.filter(task => task.id !== taskId) };
+							}
+
+							// Handle new list
+							case newListId: {
+								// Task list could be empty first
+								const newTasks = [...(list.tasks || [])];
+								newTasks.splice(newIndex, 0, taskDropped);
+								return { ...list, tasks: newTasks };
+							}
+
+							// Handle other lists
+							default: {
+								return { ...list };
+							}
+						}
+					});
+				});
+			},
+		},
+	);
+
 	if (isLoading) return <p>Loading...</p>;
 	if (error) console.error(error);
 
@@ -39,51 +93,7 @@ const Boards = () => {
 		// Dropped back to source location
 		if (newListId === oldListId && newIndex === oldIndex) return;
 
-		// Update cache
-		client.setQueryData(["listsByBoard", boardSlug], lists => {
-			console.log({ lists });
-
-			const taskDropped = {
-				...lists.find(list => list.id === oldListId).tasks.find(task => task.id === taskId),
-			};
-
-			return lists.map(list => {
-				switch (list.id) {
-					// Handle old list
-					case oldListId: {
-						// Moved with in the same list
-						if (oldListId === newListId) {
-							return {
-								...list,
-								tasks: list.tasks.map((task, idx) =>
-									idx === newIndex
-										? taskDropped
-										: idx === oldIndex
-										? { ...list.tasks[newIndex] }
-										: { ...task },
-								),
-							};
-						}
-
-						// Moved across lists
-						return { ...list, tasks: list.tasks.filter(task => task.id !== taskId) };
-					}
-
-					// Handle new list
-					case newListId: {
-						// Task list could be empty first
-						const newTasks = [...(list.tasks || [])];
-						newTasks.splice(newIndex, 0, taskDropped);
-						return { ...list, tasks: newTasks };
-					}
-
-					// Handle other lists
-					default: {
-						return { ...list };
-					}
-				}
-			});
-		});
+		mutation.mutate({ taskId, newListId, newIndex, oldListId, oldIndex });
 	};
 
 	const onDragStart = () => {};

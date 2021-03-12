@@ -65,6 +65,96 @@ export const listListsByBoard = async ({ boardSlug }) => {
 	);
 };
 
+// RE-ORDER TASK
+export const reorderTaskList = async ({
+	boardSlug,
+	taskId,
+	newListId,
+	newIndex,
+	oldListId,
+	oldIndex,
+}) => {
+	// Get board id
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+
+	// Get old list
+	const oldList = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(oldListId)
+		.get()
+		.then(doc => ({ id: doc.id, ...doc.data() }));
+
+	console.log({ oldList });
+	const oldListReordered = [...oldList.order];
+	oldListReordered.splice(oldIndex, 1);
+
+	// Task moved within same list
+	if (newListId === oldListId) oldListReordered.splice(newIndex, 0, taskId);
+
+	// Re-order old list
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(oldListId)
+		.set({ order: oldListReordered }, { merge: true });
+
+	// Task moved within same list, done here
+	if (newListId === oldListId) return;
+
+	// Get the task
+	const { id, ...taskData } = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(oldListId)
+		.collection("tasks")
+		.doc(taskId)
+		.get()
+		.then(doc => ({ id: doc.id, ...doc.data() }));
+
+	const [newList] = await Promise.all([
+		// Get newList
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(newListId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+		// Delete task from old list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(oldListId)
+			.collection("tasks")
+			.doc(taskId)
+			.delete(),
+		// Insert task into new list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(newListId)
+			.collection("tasks")
+			.doc(id)
+			.set({ ...taskData }),
+	]);
+
+	// Re-order new list
+	const newListReordered = [...newList.order];
+	newListReordered.splice(newIndex, 0, taskId);
+	return await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(newListId)
+		.set({ order: newListReordered }, { merge: true });
+};
+
 // ADD A TASK LIST TO A BOARD
 export const createList = async ({ boardSlug, id, title }) => {
 	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
