@@ -41,228 +41,121 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 	]);
 };
 
-export const getClientOverviewBySlug = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
+// LIST ALL TASK LISTS OF A BOARD
+export const listListsByBoard = async ({ boardSlug }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
 
-	const logo = (await listLogosByClient({ slug }))[0];
+	const listSnapshots = await db.collection("boards").doc(boardId).collection("lists").get();
 
-	const clientWithLogoAndColors = { ...client, logo };
+	const lists = [];
+	listSnapshots.forEach(doc => {
+		lists.push({ id: doc.id, ...doc.data() });
+	});
 
-	return clientWithLogoAndColors;
-};
-
-export const listColorByClient = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
-
-	const paletteSnapshots = await db
-		.collection("clients")
-		.doc(client.id)
-		.collection("palettes")
-		.get();
-	const palettes = [];
-	paletteSnapshots.forEach(doc =>
-		palettes.push({
-			id: doc.id,
-			...doc.data(),
-		}),
-	);
-
-	const palettePromises = palettes.map(async palette => {
-		const colorSnapshots = await db
-			.collection("clients")
-			.doc(client.id)
-			.collection("palettes")
-			.doc(palette.id)
-			.collection("colors")
-			.get();
-
-		const colors = [];
-		colorSnapshots.forEach(doc =>
-			colors.push({
-				id: doc.id,
-				...doc.data(),
+	return await Promise.all(
+		lists.map(async list => ({
+			...list,
+			tasks: await listTasksByList({
+				boardSlug,
+				listSlug: list.slug,
 			}),
-		);
-
-		return {
-			...palette,
-			colors,
-		};
-	});
-
-	return await Promise.all(palettePromises);
-};
-
-export const listLogosByClient = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
-	const logoSnapshots = await db.collection("clients").doc(client.id).collection("logos").get();
-
-	let logos = [];
-	logoSnapshots.forEach(doc => {
-		logos.push({
-			id: doc.id,
-			...doc.data(),
-		});
-	});
-
-	// Get the file download url from Google Cloud Storage URI, put in each logo object
-	logos = await Promise.all(
-		logos.map(async logo => ({
-			...logo,
-			src: await storage.refFromURL(logo.url).getDownloadURL(),
 		})),
 	);
-
-	return logos;
 };
 
-export const listIconsByClient = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
+// ADD A TASK LIST TO A BOARD
+export const createList = async ({ boardSlug, id, title }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
 
-	const iconCollectionSnapshots = await db
-		.collection("clients")
-		.doc(client.id)
-		.collection("icongraphy")
+	const listSlug = toSlug(title);
+
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(id)
+		.set({ title, slug: listSlug, order: [] });
+};
+
+// LIST ALL TASKS OF A TASK LIST
+export const listTasksByList = async ({ boardSlug, listSlug }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const { id: listId, order: orderedTaskIds } = await getListBySlug({ boardId, slug: listSlug });
+
+	const taskSnapshots = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
 		.get();
 
-	const iconCollections = [];
-	iconCollectionSnapshots.forEach(async doc => {
-		iconCollections.push({
-			id: doc.id,
-			...doc.data(),
-		});
+	const tasks = {};
+	taskSnapshots.forEach(doc => {
+		const id = doc.id;
+		tasks[id] = { id, ...doc.data() };
 	});
 
-	// Append icon sub-collection into collection
-	return await Promise.all(
-		iconCollections.map(async collection => {
-			const iconSnapshots = await db
-				.collection("clients")
-				.doc(client.id)
-				.collection("icongraphy")
-				.doc(collection.id)
-				.collection("icons")
-				.get();
-
-			const icons = [];
-			iconSnapshots.forEach(doc => {
-				icons.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
-
-			return {
-				...collection,
-				icons: await Promise.all(
-					icons.map(async icon => {
-						const src = await storage.refFromURL(icon.location).getDownloadURL();
-						return { ...icon, src };
-					}),
-				),
-			};
-		}),
-	);
+	return orderedTaskIds.map(taskId => tasks[taskId]);
 };
 
-export const listImagesByClient = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
-	const imageCollectionSnapshots = await db
-		.collection("clients")
-		.doc(client.id)
-		.collection("photography")
+// ADD A NEW TASK TO TASK LIST
+export const createTask = async ({ boardSlug, listSlug, id, title }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const list = await getListBySlug({ boardId, slug: listSlug });
+	const { id: listId, order } = list;
+
+	const taskSlug = toSlug(title);
+
+	await Promise.all([
+		// Store task order
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.set({ order: [...order, id] }, { merge: true }),
+		// Store new task to list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(id)
+			.set({
+				title,
+				slug: taskSlug,
+			}),
+	]);
+};
+
+// GET A BOARD BY SLUG
+export const getBoardBySlug = async ({ slug }) => {
+	const boardSnapshots = await db.collection("boards").where("slug", "==", slug).limit(1).get();
+
+	const boards = [];
+	boardSnapshots.forEach(doc => {
+		boards.push({ id: doc.id, ...doc.data() });
+	});
+
+	return boards[0];
+};
+
+// GET A TASK LIST BY SLUG
+export const getListBySlug = async ({ boardId, slug }) => {
+	const listSnapshots = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.where("slug", "==", slug)
+		.limit(1)
 		.get();
 
-	const imageCollections = [];
-	imageCollectionSnapshots.forEach(doc => {
-		imageCollections.push({
-			id: doc.id,
-			...doc.data(),
-		});
+	const lists = [];
+	listSnapshots.forEach(doc => {
+		lists.push({ id: doc.id, ...doc.data() });
 	});
 
-	return await Promise.all(
-		imageCollections.map(async collection => {
-			const imageSnapshots = await db
-				.collection("clients")
-				.doc(client.id)
-				.collection("photography")
-				.doc(collection.id)
-				.collection("images")
-				.get();
-
-			const images = [];
-			imageSnapshots.forEach(doc => {
-				images.push({
-					id: doc.id,
-					...doc.data(),
-				});
-			});
-
-			return {
-				...collection,
-				images: await Promise.all(
-					images.map(async image => {
-						const src = await storage.refFromURL(image.location).getDownloadURL();
-						return { ...image, src };
-					}),
-				),
-			};
-		}),
-	);
-};
-
-export const listTypographyByClient = async ({ slug }) => {
-	const client = await getClientBySlug({ slug });
-
-	const fontFamilySnapshots = await db
-		.collection("clients")
-		.doc(client.id)
-		.collection("typography")
-		.get();
-
-	const fontFamilies = [];
-	fontFamilySnapshots.forEach(doc => {
-		fontFamilies.push({
-			id: doc.id,
-			...doc.data(),
-		});
-	});
-
-	const fontFamilyPromises = fontFamilies.map(async family => {
-		const fontVariantSnapshots = await db
-			.collection("clients")
-			.doc(client.id)
-			.collection("typography")
-			.doc(family.id)
-			.collection("variants")
-			.get();
-
-		const variants = [];
-		fontVariantSnapshots.forEach(doc => {
-			variants.push({
-				id: doc.id,
-				...doc.data(),
-			});
-		});
-
-		return {
-			...family,
-			variants,
-		};
-	});
-
-	return await Promise.all(fontFamilyPromises);
-};
-
-export const getClientBySlug = async ({ slug }) => {
-	// List all clients from `clients` collection
-
-	const clientSnapshots = await db.collection("clients").where("slug", "==", slug).limit(1).get();
-	const clients = [];
-	clientSnapshots.forEach(doc => {
-		clients.push({ id: doc.id, ...doc.data() });
-	});
-
-	return clients[0];
+	return lists[0];
 };

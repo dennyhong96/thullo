@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
 import Image from "@/components/image";
 import { StyledBoardCard } from "./styles";
 
@@ -7,7 +8,7 @@ const BoardCard = ({
 	href = "/",
 	title = "Devchallengers Board",
 	avatars = [],
-	cover = "http://via.placeholder.com/1280x960?text=image",
+	cover = IMAGE_PLACEHOLDER_SRC,
 }) => {
 	return (
 		<Link href={href} passHref>

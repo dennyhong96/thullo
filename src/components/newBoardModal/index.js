@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "react-query";
-import { v4 as uuidv4 } from "uuid";
 
 import { createBoard } from "@/lib/api";
+import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
+import generateId from "@/utils/generateId";
+import toSlug from "@/utils/toSlug";
+import toBase64 from "@/utils/toBase64";
 import Modal from "@/components/modal";
 import Image from "@/components/image";
 import Button from "@/components/button";
@@ -11,8 +14,6 @@ import Input from "@/components/input";
 import UploadButton from "@/components/uploadButotn";
 import { IconLock, IconImage, IconAdd } from "@/components/icons";
 import { StyledModalActions, StyledModalBody, StyledNewBoardOptions } from "./styles";
-import toBase64 from "@/utils/toBase64";
-import toSlug from "@/utils/toSlug";
 
 const NewBoardModal = ({ ...props }) => {
 	const { onClose } = props;
@@ -54,7 +55,7 @@ const NewBoardModal = ({ ...props }) => {
 	// Form validation
 	const { register, handleSubmit } = useForm();
 	const onSubmit = async ({ title }) => {
-		const id = uuidv4();
+		const id = generateId();
 		mutation.mutate({ id, title, isPrivate, cover });
 
 		// Close modal and reset form
@@ -85,10 +86,7 @@ const NewBoardModal = ({ ...props }) => {
 		<Modal {...props}>
 			<StyledModalBody>
 				{/* BOARD IMAGE */}
-				<Image
-					aspectRatio="30%"
-					src={coverPreviewSrc || "http://via.placeholder.com/1280x960?text=image"}
-				/>
+				<Image aspectRatio="30%" src={coverPreviewSrc || IMAGE_PLACEHOLDER_SRC} />
 
 				{/* BOARD TITLE INPUT */}
 				<form onSubmit={handleSubmit(onSubmit, onError)}>
