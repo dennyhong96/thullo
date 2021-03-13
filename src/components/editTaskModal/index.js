@@ -4,17 +4,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
+import { createComment } from "@/lib/api";
+import generateId from "@/utils/generateId";
 import Image from "@/components/image";
 import Modal from "@/components/modal";
 import Comment from "@/components/comment";
 import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
+import Attachment from "@/components/attachment";
 import { StyledEditTaskModalBody } from "./styles";
 
-import generateId from "@/utils/generateId";
-import { createComment } from "@/lib/api";
-
-const EditTaskModal = ({ children, listId, taskId, title, comments, ...props }) => {
+const EditTaskModal = ({ children, listId, taskId, title, comments, attachments, ...props }) => {
 	const client = useQueryClient();
 	const router = useRouter();
 	const boardSlug = router.query.slug;
@@ -65,6 +65,7 @@ const EditTaskModal = ({ children, listId, taskId, title, comments, ...props }) 
 	const onSubmit = ({ comment }) => {
 		const id = generateId();
 		mutation.mutate({ id, comment });
+		setCommentInput("");
 	};
 	const onError = () => {};
 
@@ -88,10 +89,11 @@ const EditTaskModal = ({ children, listId, taskId, title, comments, ...props }) 
 							<p>task description</p>
 
 							{/* ATTACHMENTS */}
-							<div className="">
-								<span>Attachments</span>
-								<Button>Add</Button>
-							</div>
+							<Attachment.Container listId={listId} taskId={taskId}>
+								{attachments?.map((attachment, idx) => (
+									<Attachment key={idx} attachment={attachment} />
+								))}
+							</Attachment.Container>
 
 							{/* COMMENTS INPUT */}
 							<CommentInput

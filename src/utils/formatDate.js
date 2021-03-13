@@ -1,4 +1,6 @@
 const formatDate = date => {
+	// FIREBASE SERVER DATE NEEDS * 1000
+	date = `${date}`.length < 13 ? date * 1000 : date;
 	return new Date(date).toLocaleDateString("en-US", {
 		weekday: "short",
 		year: "numeric",
