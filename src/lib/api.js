@@ -37,44 +37,145 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 			slug: titleSlug,
 			coverPath: filePath,
 			createdAt: firebase.firestore.Timestamp.now(),
+			order: [],
 		}),
 	]);
 };
 
 // LIST ALL TASK LISTS OF A BOARD
 export const listListsByBoard = async ({ boardSlug }) => {
-	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const board = await getBoardBySlug({ slug: boardSlug });
+	const { id: boardId, order: listsOrder } = board;
 
 	const listSnapshots = await db.collection("boards").doc(boardId).collection("lists").get();
 
-	const lists = [];
+	const lists = {};
 	listSnapshots.forEach(doc => {
-		lists.push({ id: doc.id, ...doc.data() });
+		const id = doc.id;
+		lists[id] = { id, ...doc.data() };
 	});
 
-	return await Promise.all(
-		lists.map(async list => ({
-			...list,
-			tasks: await listTasksByList({
-				boardSlug,
-				listSlug: list.slug,
-			}),
-		})),
-	);
+	return {
+		...board,
+		lists: await Promise.all(
+			listsOrder.map(async listId => ({
+				...lists[listId],
+				tasks: await listTasksByList({
+					boardSlug,
+					listSlug: lists[listId].slug,
+				}),
+			})),
+		),
+	};
 };
 
-// ADD A TASK LIST TO A BOARD
-export const createList = async ({ boardSlug, id, title }) => {
+// RE-ORDER TASK
+export const reorderTaskList = async ({
+	boardSlug,
+	taskId,
+	newListId,
+	newIndex,
+	oldListId,
+	oldIndex,
+}) => {
+	// Get board id
 	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
 
-	const listSlug = toSlug(title);
+	// Get old list
+	const oldList = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(oldListId)
+		.get()
+		.then(doc => ({ id: doc.id, ...doc.data() }));
 
+	const oldListReordered = [...oldList.order];
+	const [removedId] = oldListReordered.splice(oldIndex, 1);
+
+	// Task moved within same list
+	if (newListId === oldListId) oldListReordered.splice(newIndex, 0, removedId);
+
+	// Re-order old list
 	await db
 		.collection("boards")
 		.doc(boardId)
 		.collection("lists")
-		.doc(id)
-		.set({ title, slug: listSlug, order: [] });
+		.doc(oldListId)
+		.set({ order: oldListReordered }, { merge: true });
+
+	// Task moved within same list, done here
+	if (newListId === oldListId) return;
+
+	// Get the task
+	const { id, ...taskData } = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(oldListId)
+		.collection("tasks")
+		.doc(taskId)
+		.get()
+		.then(doc => ({ id: doc.id, ...doc.data() }));
+
+	const [newList] = await Promise.all([
+		// Get newList
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(newListId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+		// Delete task from old list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(oldListId)
+			.collection("tasks")
+			.doc(taskId)
+			.delete(),
+		// Insert task into new list
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(newListId)
+			.collection("tasks")
+			.doc(id)
+			.set({ ...taskData }),
+	]);
+
+	// Re-order new list
+	const newListReordered = [...newList.order];
+	newListReordered.splice(newIndex, 0, taskId);
+	return await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(newListId)
+		.set({ order: newListReordered }, { merge: true });
+};
+
+// ADD A TASK LIST TO A BOARD
+export const createList = async ({ boardSlug, id, title }) => {
+	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
+
+	const listSlug = toSlug(title);
+
+	await Promise.all([
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.set({ order: [...listsOrder, id] }, { merge: true }),
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(id)
+			.set({ title, slug: listSlug, order: [] }),
+	]);
 };
 
 // LIST ALL TASKS OF A TASK LIST
@@ -158,4 +259,11 @@ export const getListBySlug = async ({ boardId, slug }) => {
 	});
 
 	return lists[0];
+};
+
+export const reorderLists = async ({ boardSlug, listId, newIndex, oldIndex }) => {
+	const { id: boardId, order: listsOrder } = await getBoardBySlug({ slug: boardSlug });
+	const newListsOrder = listsOrder.filter(id => id !== listId);
+	newListsOrder.splice(newIndex, 0, listId);
+	await db.collection("boards").doc(boardId).set({ order: newListsOrder }, { merge: true });
 };

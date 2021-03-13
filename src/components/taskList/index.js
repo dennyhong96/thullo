@@ -12,9 +12,9 @@ import Input from "@/components/input";
 import { StyledList } from "./styles";
 import TaskCard from "@/components/taskCard";
 import TaskListInner from "../taskListInner";
-import { Droppable } from "react-beautiful-dnd";
+import { Draggable, Droppable } from "react-beautiful-dnd";
 
-const TaskList = forwardRef(({ listId, listSlug, title, tasks, placeholder }, ref) => {
+const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => {
 	const router = useRouter();
 	const boardSlug = router.query.slug;
 	const client = useQueryClient();
@@ -27,23 +27,27 @@ const TaskList = forwardRef(({ listId, listSlug, title, tasks, placeholder }, re
 		// OPTIMISTIC UI
 		onMutate({ id, title }) {
 			const slug = toSlug(title);
-			client.setQueryData(["listsByBoard", boardSlug], old => {
-				return old.map(list =>
-					list.id === listId
-						? {
-								...list,
-								tasks: [
-									// "tasks" could be undefined first
-									...(list.tasks || []),
-									{
-										id,
-										title,
-										slug,
-									},
-								],
-						  }
-						: { ...list },
-				);
+			client.setQueryData(["listsByBoard", boardSlug], board => {
+				return {
+					...board,
+					lists: board.lists.map(list =>
+						list.id === listId
+							? {
+									...list,
+									tasks: [
+										// "tasks" could be undefined first
+										...(list.tasks || []),
+										{
+											id,
+											title,
+											slug,
+										},
+									],
+									order: [...(list.order || []), id],
+							  }
+							: { ...list },
+					),
+				};
 			});
 		},
 	});
@@ -60,48 +64,54 @@ const TaskList = forwardRef(({ listId, listSlug, title, tasks, placeholder }, re
 	const onError = error => console.error(error);
 
 	return (
-		<StyledList>
-			<h3>{title}</h3>
+		<Draggable draggableId={listId} index={index}>
+			{provided => (
+				<StyledList {...provided.draggableProps} ref={provided.innerRef}>
+					{/* Draggable handle */}
 
-			{/* ADD TASK INPUT */}
-			{isAdding ? (
-				<form onSubmit={handleSubmit(onSubmit, onError)}>
-					<Input
-						name="title"
-						ref={register}
-						value={taskTitle}
-						onChange={evt => setTaskTitle(evt.target.value)}
-					/>
-					<div>
-						<Button type="button" onClick={setIsAdding.bind(this, false)} isGhost>
-							Cancel
+					<h3 {...provided.dragHandleProps}>{title}</h3>
+
+					{/* ADD TASK INPUT */}
+					{isAdding ? (
+						<form onSubmit={handleSubmit(onSubmit, onError)}>
+							<Input
+								name="title"
+								ref={register}
+								value={taskTitle}
+								onChange={evt => setTaskTitle(evt.target.value)}
+							/>
+							<div>
+								<Button type="button" onClick={setIsAdding.bind(this, false)} isGhost>
+									Cancel
+								</Button>
+								<Button type="submit">Create</Button>
+							</div>
+						</form>
+					) : (
+						<Button Icon={<IconAdd />} isToggable onClick={setIsAdding.bind(this, true)}>
+							Add a new task
 						</Button>
-						<Button type="submit">Create</Button>
-					</div>
-				</form>
-			) : (
-				<Button Icon={<IconAdd />} isToggable onClick={setIsAdding.bind(this, true)}>
-					Add a new task
-				</Button>
-			)}
+					)}
 
-			{/* TASKS */}
-			<Droppable droppableId={listId}>
-				{(provider, snapshot) => (
-					<TaskListInner
-						listId={listId}
-						isDraggingOver={snapshot.isDraggingOver}
-						{...provider.droppableProps}
-						ref={provider.innerRef}
-					>
-						{tasks?.map((task, idx) => (
-							<TaskCard key={task.id} index={idx} listId={listId} {...task} />
-						))}
-						{provider.placeholder}
-					</TaskListInner>
-				)}
-			</Droppable>
-		</StyledList>
+					{/* TASKS */}
+					<Droppable droppableId={listId} type="TASKS">
+						{(provider, snapshot) => (
+							<TaskListInner
+								listId={listId}
+								isDraggingOver={snapshot.isDraggingOver}
+								{...provider.droppableProps}
+								ref={provider.innerRef}
+							>
+								{tasks?.map((task, idx) => (
+									<TaskCard key={task.id} index={idx} listId={listId} {...task} />
+								))}
+								{provider.placeholder}
+							</TaskListInner>
+						)}
+					</Droppable>
+				</StyledList>
+			)}
+		</Draggable>
 	);
 });
 
