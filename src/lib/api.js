@@ -136,8 +136,6 @@ const listCommentsByTask = async ({ boardId, listId, taskId }) => {
 		.collection("comments")
 		.get();
 
-	console.log({ commentSnapshots });
-
 	const comments = [];
 	commentSnapshots.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
 	return comments.sort((a, b) => new Date(b.createdAt.seconds) - new Date(a.createdAt.seconds));
