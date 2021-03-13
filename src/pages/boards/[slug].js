@@ -46,12 +46,12 @@ const Boards = () => {
 
 						// Swap order
 						const newOrder = [...order];
-						newOrder[newIndex] = order[oldIndex];
-						newOrder[oldIndex] = order[newIndex];
+						const [listId] = newOrder.splice(oldIndex, 1);
+						newOrder.splice(newIndex, 0, listId);
 
 						const newLists = [...board.lists];
-						newLists[oldIndex] = board.lists[newIndex];
-						newLists[newIndex] = board.lists[oldIndex];
+						const [list] = newLists.splice(oldIndex, 1);
+						newLists.splice(newIndex, 0, list);
 
 						return {
 							...board,
@@ -78,20 +78,27 @@ const Boards = () => {
 								case oldListId: {
 									// Moved with in the same list
 									if (oldListId === newListId) {
+										const newTasks = [...list.tasks];
+										const [task] = newTasks.splice(oldIndex, 1);
+										newTasks.splice(newIndex, 0, task);
+
+										const newOrder = [...list.order];
+										const [taskId] = newOrder.splice(oldIndex, 1);
+										newOrder.splice(newIndex, 0, taskId);
+
 										return {
 											...list,
-											tasks: list.tasks.map((task, idx) =>
-												idx === newIndex
-													? taskDropped
-													: idx === oldIndex
-													? { ...list.tasks[newIndex] }
-													: { ...task },
-											),
+											order: newOrder,
+											tasks: newTasks,
 										};
 									}
 
 									// Moved across lists
-									return { ...list, tasks: list.tasks.filter(task => task.id !== taskId) };
+									return {
+										...list,
+										order: list.order.filter(tId => tId !== taskId),
+										tasks: list.tasks.filter(task => task.id !== taskId),
+									};
 								}
 
 								// Handle new list
@@ -99,7 +106,11 @@ const Boards = () => {
 									// Task list could be empty first
 									const newTasks = [...(list.tasks || [])];
 									newTasks.splice(newIndex, 0, taskDropped);
-									return { ...list, tasks: newTasks };
+
+									const newOrder = [...(list.order || [])];
+									newOrder.splice(newIndex, 0, taskId);
+
+									return { ...list, order: newOrder, tasks: newTasks };
 								}
 
 								// Handle other lists

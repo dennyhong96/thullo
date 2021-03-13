@@ -91,10 +91,10 @@ export const reorderTaskList = async ({
 		.then(doc => ({ id: doc.id, ...doc.data() }));
 
 	const oldListReordered = [...oldList.order];
-	oldListReordered.splice(oldIndex, 1);
+	const [removedId] = oldListReordered.splice(oldIndex, 1);
 
 	// Task moved within same list
-	if (newListId === oldListId) oldListReordered.splice(newIndex, 0, taskId);
+	if (newListId === oldListId) oldListReordered.splice(newIndex, 0, removedId);
 
 	// Re-order old list
 	await db

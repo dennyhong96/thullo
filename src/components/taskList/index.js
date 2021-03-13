@@ -14,7 +14,7 @@ import TaskCard from "@/components/taskCard";
 import TaskListInner from "../taskListInner";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 
-const TaskList = forwardRef(({ index, listId, listSlug, title, tasks, placeholder }, ref) => {
+const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => {
 	const router = useRouter();
 	const boardSlug = router.query.slug;
 	const client = useQueryClient();
