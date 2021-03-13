@@ -13,9 +13,14 @@ export const listBoards = async () => {
 		boards.push({ id: doc.id, ...doc.data() });
 	});
 
+	// Order boards by created at date
+	const orderedBoards = boards
+		.slice()
+		.sort((a, b) => new Date(b.createdAt.seconds) - new Date(a.createdAt.seconds));
+
 	// Get cover src from filePath
 	return await Promise.all(
-		boards.map(async board => ({
+		orderedBoards.map(async board => ({
 			...board,
 			cover: await storage.ref(board.coverPath).getDownloadURL(),
 		})),
@@ -107,7 +112,35 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 		tasks[id] = { id, ...doc.data() };
 	});
 
-	return orderedTaskIds.map(taskId => tasks[taskId]);
+	// Put tasks in order
+	const orderedTasks = orderedTaskIds.map(taskId => tasks[taskId]);
+
+	// Put comments into task
+	return await Promise.all(
+		orderedTasks.map(async task => ({
+			...task,
+			comments: await listCommentsByTask({ boardId, listId, taskId: task.id }),
+		})),
+	);
+};
+
+// LIST COMMENTS OF A TASK
+const listCommentsByTask = async ({ boardId, listId, taskId }) => {
+	const commentSnapshots = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("comments")
+		.get();
+
+	console.log({ commentSnapshots });
+
+	const comments = [];
+	commentSnapshots.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
+	return comments.sort((a, b) => new Date(b.createdAt.seconds) - new Date(a.createdAt.seconds));
 };
 
 // ADD A NEW TASK TO TASK LIST
@@ -141,6 +174,25 @@ export const createTask = async ({ boardSlug, listSlug, id, title }) => {
 	]);
 };
 
+// ADD A COMMENT TO A TASK
+export const createComment = async ({ boardSlug, listId, taskId, id, comment }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("comments")
+		.doc(id)
+		.set({
+			id,
+			body: comment,
+			createdAt: firebase.firestore.Timestamp.now(),
+		});
+};
+
 // GET A BOARD BY SLUG
 export const getBoardBySlug = async ({ slug }) => {
 	const boardSnapshots = await db.collection("boards").where("slug", "==", slug).limit(1).get();
@@ -170,6 +222,10 @@ export const getListBySlug = async ({ boardId, slug }) => {
 
 	return lists[0];
 };
+
+// ---------------------------------------------------------------------------------------------------
+// ----------------------------------------- HANDLE RE-ORDER -----------------------------------------
+// ---------------------------------------------------------------------------------------------------
 
 // RE-ORDER TASK
 export const reorderTaskList = async ({

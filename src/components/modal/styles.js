@@ -4,10 +4,10 @@ import { StyledButton } from "@/components/button/styles";
 export const StyledModal = styled.div`
 	position: fixed;
 	left: 50%;
-	top: 0;
-	margin-top: 10rem;
-	transform: translate(-50%, 0);
+	top: 50%;
+	transform: translate(-50%, -50%);
 	width: 90%;
+	max-height: 90%;
 	max-width: 35rem;
 	background-color: #fff;
 	box-shadow: ${({ theme }) => theme.boxShadow.card};
@@ -17,6 +17,11 @@ export const StyledModal = styled.div`
 		size === "lg" &&
 		css`
 			max-width: 70rem;
+			height: 90%;
+
+			& > div {
+				height: 100%;
+			}
 		`}
 
 	/* CLOSE BUTTON */

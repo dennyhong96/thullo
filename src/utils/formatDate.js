@@ -1,9 +1,11 @@
 const formatDate = date => {
 	return new Date(date).toLocaleDateString("en-US", {
-		weekday: "long",
+		weekday: "short",
 		year: "numeric",
-		month: "long",
+		month: "short",
 		day: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
 	});
 };
 
