@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { StyledButton } from "@/components/button/styles";
 
 export const StyledModal = styled.div`
@@ -12,6 +12,12 @@ export const StyledModal = styled.div`
 	background-color: #fff;
 	box-shadow: ${({ theme }) => theme.boxShadow.card};
 	border-radius: ${({ theme }) => theme.borderRadius.card};
+
+	${({ size }) =>
+		size === "lg" &&
+		css`
+			max-width: 70rem;
+		`}
 
 	/* CLOSE BUTTON */
 	& > ${StyledButton} {

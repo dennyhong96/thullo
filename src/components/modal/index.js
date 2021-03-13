@@ -5,14 +5,14 @@ import Button from "@/components/button";
 import { IconClose } from "@/components/icons";
 import { StyledModal, StyledBackdrop } from "./styles";
 
-const Modal = ({ children, isOpen, onClose }) => {
+const Modal = ({ children, isOpen, onClose, size }) => {
 	return process.browser && isOpen
 		? createPortal(
 				<Fragment>
 					{/* BACKDROP */}
 					<StyledBackdrop onClick={onClose} />
 
-					<StyledModal>
+					<StyledModal size={size}>
 						{/* CLOSE BUTTON */}
 						<Button Icon={<IconClose />} onClick={onClose} />
 
