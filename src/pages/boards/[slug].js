@@ -1,11 +1,11 @@
 import { useRouter } from "next/router";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
 import { listListsByBoard, reorderLists, reorderTaskList } from "@/lib/api";
 import TaskList from "@/components/taskList";
 import ListAppender from "@/components/listAppender";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 const StyledContainer = styled.div`
 	overflow-x: auto;
@@ -28,13 +28,17 @@ const Boards = () => {
 	const mutation = useMutation(
 		// Update DB
 		({ type, props }) => {
+			// TASKS DND
 			if (type === "TASKS") {
 				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
 				return reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
 			}
 
-			const { listId, newIndex, oldIndex } = props;
-			reorderLists({ boardSlug, listId, newIndex, oldIndex });
+			// LIST DND
+			if (type === "LISTS") {
+				const { listId, newIndex, oldIndex } = props;
+				reorderLists({ boardSlug, listId, newIndex, oldIndex });
+			}
 		},
 		// Update local cache
 		{

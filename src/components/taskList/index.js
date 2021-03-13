@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
+import { Draggable, Droppable } from "react-beautiful-dnd";
 
 import { createTask } from "@/lib/api";
 import toSlug from "@/utils/toSlug";
@@ -9,10 +10,9 @@ import generateId from "@/utils/generateId";
 import Button from "@/components/button";
 import { IconAdd } from "@/components/icons";
 import Input from "@/components/input";
-import { StyledList } from "./styles";
 import TaskCard from "@/components/taskCard";
-import TaskListInner from "../taskListInner";
-import { Draggable, Droppable } from "react-beautiful-dnd";
+import TaskListInner from "@/components/taskListInner";
+import { StyledList } from "./styles";
 
 const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => {
 	const router = useRouter();
