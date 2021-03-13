@@ -5,9 +5,10 @@ import { StyledButton } from "@/components/button/styles";
 
 export const StyledTextarea = styled.form`
 	position: relative;
+	overflow: hidden;
 	border-radius: ${({ theme }) => theme.borderRadius.card};
 	border: 1px solid ${({ theme }) => theme.colors.textLight};
-	overflow: hidden;
+	box-shadow: ${({ theme }) => theme.boxShadow.search};
 
 	& > div:first-of-type {
 		width: 100%;
