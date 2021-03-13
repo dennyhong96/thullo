@@ -1,10 +1,12 @@
+import { Fragment, useState } from "react";
+
 import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
+import formatDate from "@/utils/formatDate";
 import Button from "@/components/button";
 import Image from "@/components/image";
+import NewAttachmentModal from "@/components/newAttachmentModal";
 import { StyledAttachment, StyledAttachments, StyledAttachmentContainer } from "./styles";
-import { Fragment, useState } from "react";
-import NewAttachmentModal from "../newAttachmentModal";
-import formatDate from "@/utils/formatDate";
+import handleDownload from "@/utils/handleDownload";
 
 const Attachment = ({ attachment }) => {
 	return (
@@ -17,7 +19,15 @@ const Attachment = ({ attachment }) => {
 				<span>{formatDate(attachment.createdAt.seconds)}</span>
 				<p>{attachment.title}</p>
 				<div>
-					<Button isToggable>Download</Button>
+					<Button
+						isToggable
+						onClick={handleDownload.bind(this, {
+							fileName: "ttt.jpg",
+							url: attachment.attachmentSrc,
+						})}
+					>
+						Download
+					</Button>
 					<Button isToggable>Delete</Button>
 				</div>
 			</div>

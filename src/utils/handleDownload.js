@@ -1,5 +1,3 @@
-import { FILE_TYPE_EXTENTION_MAP } from "@/lib/constants";
-
 const handleDownload = ({ url, fileName }) => {
 	const postData = new FormData();
 	const xhr = new XMLHttpRequest();
@@ -7,7 +5,7 @@ const handleDownload = ({ url, fileName }) => {
 	xhr.responseType = "blob";
 	xhr.onload = function (evt) {
 		const blob = xhr.response;
-		const fileDownloadName = `${fileName}${FILE_TYPE_EXTENTION_MAP[blob.type]}`;
+		const fileDownloadName = `${fileName}`;
 		saveOrOpenBlob(blob, fileDownloadName);
 	};
 	xhr.send(postData);
