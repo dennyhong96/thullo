@@ -1,11 +1,8 @@
 import { forwardRef, useState } from "react";
-import { useRouter } from "next/router";
-import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 
-import { createTask } from "@/lib/api";
-import toSlug from "@/utils/toSlug";
+import useCreateTask from "@/hooks/useCreateTask";
 import generateId from "@/utils/generateId";
 import Button from "@/components/button";
 import { IconAdd } from "@/components/icons";
@@ -15,42 +12,12 @@ import TaskListInner from "@/components/taskListInner";
 import { StyledList } from "./styles";
 
 const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => {
-	const router = useRouter();
-	const boardSlug = router.query.slug;
-	const client = useQueryClient();
-
 	// STATES
 	const [isAdding, setIsAdding] = useState(false);
 	const [taskTitle, setTaskTitle] = useState("");
 
-	const mutation = useMutation(({ id, title }) => createTask({ boardSlug, listSlug, id, title }), {
-		// OPTIMISTIC UI
-		onMutate({ id, title }) {
-			const slug = toSlug(title);
-			client.setQueryData(["listsByBoard", boardSlug], board => {
-				return {
-					...board,
-					lists: board.lists.map(list =>
-						list.id === listId
-							? {
-									...list,
-									tasks: [
-										// "tasks" could be undefined first
-										...(list.tasks || []),
-										{
-											id,
-											title,
-											slug,
-										},
-									],
-									order: [...(list.order || []), id],
-							  }
-							: { ...list },
-					),
-				};
-			});
-		},
-	});
+	// Create task mutation
+	const { mutation } = useCreateTask({ listId, listSlug });
 
 	const { register, handleSubmit } = useForm();
 	const onSubmit = ({ title }) => {
