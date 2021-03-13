@@ -14,7 +14,7 @@ import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
 import { StyledEditTaskModalBody } from "./styles";
 
-const EditTaskModal = ({ children, listId, taskId, title, comments, ...props }) => {
+const EditTaskModal = ({ children, listId, taskId, title, comments, attachments, ...props }) => {
 	const client = useQueryClient();
 	const router = useRouter();
 	const boardSlug = router.query.slug;
@@ -89,10 +89,10 @@ const EditTaskModal = ({ children, listId, taskId, title, comments, ...props }) 
 							<p>task description</p>
 
 							{/* ATTACHMENTS */}
-							<Attachment.Container>
-								<Attachment />
-								<Attachment />
-								<Attachment />
+							<Attachment.Container listId={listId} taskId={taskId}>
+								{attachments?.map((attachment, idx) => (
+									<Attachment key={idx} attachment={attachment} />
+								))}
 							</Attachment.Container>
 
 							{/* COMMENTS INPUT */}

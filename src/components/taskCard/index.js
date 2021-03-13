@@ -5,7 +5,7 @@ import EditTaskModal from "@/components/editTaskModal";
 import { IconHandle } from "@/components/icons";
 import { StyledTaskCard, StyledDragHandle } from "./styles";
 
-const TaskCard = ({ index, listId, id: taskId, title, comments }) => {
+const TaskCard = ({ index, listId, id: taskId, title, comments, attachments }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	return (
@@ -35,6 +35,7 @@ const TaskCard = ({ index, listId, id: taskId, title, comments }) => {
 				taskId={taskId}
 				title={title}
 				comments={comments}
+				attachments={attachments}
 			/>
 		</Fragment>
 	);

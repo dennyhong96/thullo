@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { StyledImage } from "../image/styles";
 import { StyledInput } from "../input/styles";
 
-export const StyledAttachmentModal = styled.div`
+export const StyledAttachmentModal = styled.form`
 	& > h3 {
 	}
 

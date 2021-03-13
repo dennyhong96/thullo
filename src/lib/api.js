@@ -1,5 +1,6 @@
 import firebase from "./firebase";
 import toSlug from "@/utils/toSlug";
+import sortByLastest from "@/utils/sortByLatest";
 
 const db = firebase.firestore();
 const storage = firebase.storage();
@@ -14,9 +15,7 @@ export const listBoards = async () => {
 	});
 
 	// Order boards by created at date
-	const orderedBoards = boards
-		.slice()
-		.sort((a, b) => new Date(b.createdAt.seconds) - new Date(a.createdAt.seconds));
+	const orderedBoards = sortByLastest(boards);
 
 	// Get cover src from filePath
 	return await Promise.all(
@@ -117,10 +116,18 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 
 	// Put comments into task
 	return await Promise.all(
-		orderedTasks.map(async task => ({
-			...task,
-			comments: await listCommentsByTask({ boardId, listId, taskId: task.id }),
-		})),
+		orderedTasks.map(async task => {
+			const [comments, attachments] = await Promise.all([
+				await listCommentsByTask({ boardId, listId, taskId: task.id }),
+				await listAttachmentsByTask({ boardId, listId, taskId: task.id }),
+			]);
+
+			return {
+				...task,
+				comments,
+				attachments,
+			};
+		}),
 	);
 };
 
@@ -138,7 +145,31 @@ const listCommentsByTask = async ({ boardId, listId, taskId }) => {
 
 	const comments = [];
 	commentSnapshots.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
-	return comments.sort((a, b) => new Date(b.createdAt.seconds) - new Date(a.createdAt.seconds));
+	return sortByLastest(comments);
+};
+
+// LIST ATTACHEMENTS OF A TASK
+const listAttachmentsByTask = async ({ boardId, listId, taskId }) => {
+	const attachmentSnapshots = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("attachments")
+		.get();
+
+	const attachments = [];
+	attachmentSnapshots.forEach(doc => attachments.push({ id: doc.id, ...doc.data() }));
+	const sortedAttachments = sortByLastest(attachments);
+
+	return await Promise.all(
+		sortedAttachments.map(async attachment => ({
+			...attachment,
+			attachmentSrc: await storage.ref(attachment.attachmentPath).getDownloadURL(),
+		})),
+	);
 };
 
 // ADD A NEW TASK TO TASK LIST
@@ -219,6 +250,53 @@ export const getListBySlug = async ({ boardId, slug }) => {
 	});
 
 	return lists[0];
+};
+
+// ADD AN ATTACHMENT TO A TASK
+export const createTaskAttachment = async ({ boardSlug, listId, taskId, id, title, file }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const [{ slug: listSlug }, { slug: taskSlug }] = await Promise.all([
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(taskId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+	]);
+
+	const attachmentTitleSlug = toSlug(title);
+	const fileExt = file.type.split("/")[1];
+	const filePath = `/boards/${boardSlug}/${listSlug}/${taskSlug}/${attachmentTitleSlug}.${fileExt}`;
+
+	await Promise.all([
+		await storage.ref(filePath).put(file),
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(taskId)
+			.collection("attachments")
+			.doc(id)
+			.set({
+				id,
+				title,
+				slug: attachmentTitleSlug,
+				attachmentPath: filePath,
+				createdAt: firebase.firestore.Timestamp.now(),
+			}),
+	]);
 };
 
 // ---------------------------------------------------------------------------------------------------

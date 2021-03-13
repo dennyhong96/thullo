@@ -4,17 +4,18 @@ import Image from "@/components/image";
 import { StyledAttachment, StyledAttachments, StyledAttachmentContainer } from "./styles";
 import { Fragment, useState } from "react";
 import NewAttachmentModal from "../newAttachmentModal";
+import formatDate from "@/utils/formatDate";
 
-const Attachment = () => {
+const Attachment = ({ attachment }) => {
 	return (
 		<StyledAttachment>
 			{/* ATTACHMENT IMAGE */}
-			<Image aspectRatio="66.25%" src={IMAGE_PLACEHOLDER_SRC} />
+			<Image aspectRatio="66.25%" src={attachment.attachmentSrc || IMAGE_PLACEHOLDER_SRC} />
 
 			{/* ATTACHMENT INFO */}
 			<div>
-				<span>Added July 5, 2020</span>
-				<p>next.config.js</p>
+				<span>{formatDate(attachment.createdAt.seconds)}</span>
+				<p>{attachment.title}</p>
 				<div>
 					<Button isToggable>Download</Button>
 					<Button isToggable>Delete</Button>
@@ -24,7 +25,7 @@ const Attachment = () => {
 	);
 };
 
-const AttachmentsContainer = ({ children }) => {
+const AttachmentsContainer = ({ children, listId, taskId }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	return (
@@ -43,7 +44,12 @@ const AttachmentsContainer = ({ children }) => {
 			</StyledAttachmentContainer>
 
 			{/* ADD ATTACHMENT MODAL */}
-			<NewAttachmentModal isOpen={isModalOpen} onClose={setIsModalOpen.bind(this, false)} />
+			<NewAttachmentModal
+				isOpen={isModalOpen}
+				onClose={setIsModalOpen.bind(this, false)}
+				listId={listId}
+				taskId={taskId}
+			/>
 		</Fragment>
 	);
 };
