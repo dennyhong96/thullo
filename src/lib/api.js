@@ -300,6 +300,28 @@ export const createTaskAttachment = async ({ boardSlug, listId, taskId, id, titl
 	]);
 };
 
+// DELETE ATTACHMENT FROM TASK
+export const deleteAttachment = async ({
+	boardSlug,
+	listId,
+	taskId,
+	attachmentId,
+	attachmentPath,
+}) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	await storage.ref(attachmentPath).delete();
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("attachments")
+		.doc(attachmentId)
+		.delete();
+};
+
 // ---------------------------------------------------------------------------------------------------
 // ----------------------------------------- HANDLE RE-ORDER -----------------------------------------
 // ---------------------------------------------------------------------------------------------------
