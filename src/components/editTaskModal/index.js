@@ -91,7 +91,7 @@ const EditTaskModal = ({ children, listId, taskId, title, comments, attachments,
 							{/* ATTACHMENTS */}
 							<Attachment.Container listId={listId} taskId={taskId}>
 								{attachments?.map((attachment, idx) => (
-									<Attachment key={idx} attachment={attachment} />
+									<Attachment key={idx} attachment={attachment} listId={listId} taskId={taskId} />
 								))}
 							</Attachment.Container>
 
