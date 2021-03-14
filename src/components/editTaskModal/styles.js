@@ -17,6 +17,7 @@ export const StyledEditTaskModalBody = styled.div`
 			display: grid;
 			grid-template-columns: 1fr 15rem;
 			gap: 2rem;
+			align-items: start;
 		}
 	}
 `;

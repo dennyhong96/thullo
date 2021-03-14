@@ -34,6 +34,7 @@ const Boards = () => {
 								key={list.id}
 								index={idx}
 								listId={list.id}
+								listTitle={list.title}
 								title={list.title}
 								tasks={list.tasks}
 								listSlug={list.slug}

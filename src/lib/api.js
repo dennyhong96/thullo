@@ -117,15 +117,17 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 	// Put comments into task
 	return await Promise.all(
 		orderedTasks.map(async task => {
-			const [comments, attachments] = await Promise.all([
+			const [comments, attachments, src] = await Promise.all([
 				await listCommentsByTask({ boardId, listId, taskId: task.id }),
 				await listAttachmentsByTask({ boardId, listId, taskId: task.id }),
+				...(task.cover?.path ? [await storage.ref(task.cover.path).getDownloadURL()] : []),
 			]);
 
 			return {
 				...task,
 				comments,
 				attachments,
+				...(src ? { cover: { ...task.cover, src } } : {}),
 			};
 		}),
 	);
@@ -201,6 +203,46 @@ export const createTask = async ({ boardSlug, listSlug, id, title }) => {
 				slug: taskSlug,
 				description: "<p>Click 'Edit' to edit description.</p>",
 			}),
+	]);
+};
+
+// UPLOAD A COVER FOR A TASK
+export const uploadTaskCover = async ({ boardSlug, listId, taskId, file }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	const taskRef = db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId);
+	const { slug } = await taskRef.get().then(doc => ({ id: doc.id, ...doc.data() }));
+
+	const [{ slug: listSlug }, { slug: taskSlug }] = await Promise.all([
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(taskId)
+			.get()
+			.then(doc => ({ id: doc.id, ...doc.data() })),
+	]);
+
+	const fileExt = file.type.split("/")[1];
+	const path = `/boards/${boardSlug}/${listSlug}/${taskSlug}/${slug}.${fileExt}`;
+
+	await Promise.all([
+		await storage.ref(path).put(file),
+		await taskRef.set({ cover: { path } }, { merge: true }),
 	]);
 };
 
