@@ -1,35 +1,19 @@
 import styled from "styled-components";
 
 import useTaskComment from "@/hooks/useTaskComment";
-import useDescriptionEditor from "@/hooks/useDescriptionEditor";
 import Image from "@/components/image";
 import Modal from "@/components/modal";
 import Comment from "@/components/comment";
 import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
-import Editor from "@/components/editor";
 import Popover from "@/components/popover";
 import UploadButton from "@/components/uploadButotn";
 import useTaskCover from "@/hooks/useTaskCover";
 import { StyledButton } from "@/components/button/styles";
-import { IconEdit, IconMembers, IconLabels, IconImage } from "@/components/icons";
+import { IconMembers, IconLabels, IconImage } from "@/components/icons";
+import TaskDescription from "@/components/taskDescripiton";
 import { StyledEditTaskModalBody } from "./styles";
-
-const StyledDescription = styled.div`
-	& > div:first-of-type {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-`;
-
-const StyledDescriptioContent = styled.div`
-	border-radius: ${({ theme }) => theme.borderRadius.card};
-	border: 1px solid ${({ theme }) => theme.colors.textLight};
-	box-shadow: ${({ theme }) => theme.boxShadow.search};
-	padding: 2rem;
-`;
 
 const StyledActions = styled.div`
 	display: grid;
@@ -53,6 +37,7 @@ const EditTaskModal = ({
 	comments,
 	attachments,
 	description,
+	// Other -
 	...props
 }) => {
 	// HANDLES TASK COMMENT STATE AND MUTATION
@@ -60,15 +45,6 @@ const EditTaskModal = ({
 		listId,
 		taskId,
 	});
-
-	// HANDLES TASK DESCRIPTION STATE AND MUTATION
-	const {
-		isEditorOpen,
-		setIsEditorOpen,
-		setDescription,
-		taskDescription,
-		handleUpdateDescription,
-	} = useDescriptionEditor({ description, listId, taskId });
 
 	// HANDLES TASK COVER UPLOAD
 	const { fileSrc, handleTaskCover } = useTaskCover({ listId, taskId });
@@ -90,27 +66,7 @@ const EditTaskModal = ({
 							<p>In list: {listTitle}</p>
 
 							{/* DESCRIPTION */}
-							<StyledDescription>
-								<div>
-									<span>Description</span>
-									{!isEditorOpen && (
-										<Button isGhost onClick={setIsEditorOpen.bind(this, true)} Icon={<IconEdit />}>
-											Edit
-										</Button>
-									)}
-								</div>
-
-								{/* DESCRIPTION EDITOR */}
-								{isEditorOpen ? (
-									<Editor
-										value={taskDescription}
-										onChange={val => setDescription(val)}
-										onUpdate={handleUpdateDescription}
-									/>
-								) : (
-									<StyledDescriptioContent dangerouslySetInnerHTML={{ __html: taskDescription }} />
-								)}
-							</StyledDescription>
+							<TaskDescription description={description} listId={listId} taskId={taskId} />
 
 							{/* ATTACHMENTS */}
 							<Attachment.Container listId={listId} taskId={taskId}>
