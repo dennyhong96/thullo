@@ -12,6 +12,7 @@ import useTaskCover from "@/hooks/useTaskCover";
 import { StyledButton } from "@/components/button/styles";
 import { IconMembers, IconImage } from "@/components/icons";
 import TaskDescription from "@/components/taskDescripiton";
+import TaskLabels from "@/components/taskLabels";
 import LabelPopover from "@/components/labelPopover";
 import { StyledEditTaskModalBody } from "./styles";
 
@@ -37,6 +38,7 @@ const EditTaskModal = ({
 	comments,
 	attachments,
 	description,
+	labels,
 	// Other -
 	...props
 }) => {
@@ -64,6 +66,9 @@ const EditTaskModal = ({
 							{/* TITLE */}
 							<h3>{title}</h3>
 							<p>In list: {listTitle}</p>
+
+							{/* LABELS */}
+							<TaskLabels labels={labels} />
 
 							{/* DESCRIPTION */}
 							<TaskDescription description={description} listId={listId} taskId={taskId} />
@@ -108,7 +113,7 @@ const EditTaskModal = ({
 							</Button>
 
 							{/* ADD / REMOVE LABELS */}
-							<LabelPopover listId={listId} taskId={taskId} />
+							<LabelPopover listId={listId} taskId={taskId} labels={labels} />
 
 							{/* ADD COVER */}
 							<UploadButton isToggable Icon={<IconImage />} onChange={handleTaskCover}>

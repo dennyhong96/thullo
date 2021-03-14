@@ -3,13 +3,16 @@ import { useMutation, useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
+import useBoardData from "@/hooks/useBoardData";
 import generateId from "@/utils/generateId";
+import toSlug from "@/utils/toSlug";
 import Button from "@/components/button";
 import Popover from "@/components/popover";
 import Input from "@/components/input";
 import { IconLabels } from "@/components/icons";
+import TaskLabel from "@/components/taskLabel";
 import { StyledColor, StyledColors, StyledLabelPopover } from "./styles";
-import toSlug from "@/utils/toSlug";
+import { addTaskLabel } from "@/lib/api";
 
 const COLORS = [
 	"#219653",
@@ -26,7 +29,7 @@ const COLORS = [
 	"#E0E0E0",
 ];
 
-const LabelPopover = ({ listId, taskId, ...props }) => {
+const LabelPopover = ({ listId, taskId, labels, ...props }) => {
 	const [selectedColor, setSelectedColor] = useState("");
 	const [label, setLabel] = useState("");
 
@@ -38,7 +41,7 @@ const LabelPopover = ({ listId, taskId, ...props }) => {
 	const mutation = useMutation(
 		// DB
 		({ id, slug, label, selectedColor }) => {
-			// return editTaskDescription({ boardSlug, listId, taskId, description });
+			return addTaskLabel({ boardSlug, listId, taskId, id, slug, label, selectedColor });
 		},
 		// LOCAL CACHE
 		{
@@ -73,13 +76,13 @@ const LabelPopover = ({ listId, taskId, ...props }) => {
 							{
 								id,
 								slug,
-								label,
+								name: label,
 								selectedColor,
 								createdAt: {
 									seconds: Date.now(),
 								},
 							},
-							...(board.label ?? []),
+							...(board.labels ?? []),
 						],
 					};
 				});
@@ -92,8 +95,12 @@ const LabelPopover = ({ listId, taskId, ...props }) => {
 		const id = generateId();
 		const slug = toSlug(label);
 		mutation.mutate({ id, slug, label, selectedColor });
+		setSelectedColor("");
+		setLabel("");
 	};
 	const onError = () => {};
+
+	const { data: board } = useBoardData();
 
 	return (
 		<Popover
@@ -126,6 +133,22 @@ const LabelPopover = ({ listId, taskId, ...props }) => {
 						/>
 					))}
 				</StyledColors>
+
+				{/* AVAILABLE LABELS */}
+				<div className="">
+					<p>
+						<IconLabels /> Available
+					</p>
+
+					{/* FILTER OUT LABELS ALREADY ON THIS TASK */}
+					<div className="">
+						{board?.labels
+							?.filter(lab => !labels?.find(label => label.id === lab.id))
+							?.map(label => (
+								<TaskLabel label={label} key={label.id} />
+							))}
+					</div>
+				</div>
 
 				{/*  */}
 				<Button type="submit">Add</Button>

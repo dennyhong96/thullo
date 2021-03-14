@@ -15,6 +15,7 @@ const TaskCard = ({
 	comments,
 	attachments,
 	description,
+	labels,
 }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -49,6 +50,7 @@ const TaskCard = ({
 				comments={comments}
 				attachments={attachments}
 				description={description}
+				labels={labels}
 			/>
 		</Fragment>
 	);
