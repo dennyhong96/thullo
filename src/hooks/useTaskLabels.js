@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
-import { addTaskLabel } from "@/lib/api";
+import { addTaskLabel } from "@/lib/api/labels";
 import generateId from "@/utils/generateId";
 import toSlug from "@/utils/toSlug";
 

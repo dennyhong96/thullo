@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 
-import { reorderLists, reorderTaskList } from "@/lib/api";
+import { reorderLists, reorderTaskList } from "@/lib/api/dnd";
 
 const useDnD = () => {
 	const router = useRouter();

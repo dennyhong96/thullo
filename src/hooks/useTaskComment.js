@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { createComment } from "@/lib/api";
+import { createComment } from "@/lib/api/comments";
 import generateId from "@/utils/generateId";
 
 const useTaskComment = ({ listId, taskId }) => {

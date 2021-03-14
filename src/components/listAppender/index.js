@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
 
-import { createList } from "@/lib/api";
+import { createList } from "@/lib/api/lists";
 import generateId from "@/utils/generateId";
 import toSlug from "@/utils/toSlug";
 import Button from "@/components/button";
