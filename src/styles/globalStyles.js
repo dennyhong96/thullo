@@ -103,6 +103,51 @@ const GlobalStyles = createGlobalStyle`
       outline: 1px solid ${theme.colors.background};
     }
   }
+
+  /* React Quill Style override */
+  .quill {
+    position: relative;
+    overflow: hidden;
+    border-radius: ${theme.borderRadius.card};
+    border: 1px solid ${theme.colors.textLight};
+    box-shadow: ${theme.boxShadow.search};
+  }
+  .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid ${theme.colors.textLight};
+  }
+  .ql-container.ql-snow {
+    border: none;
+    padding-bottom: 4rem;
+    min-height: 16rem;
+  }
+
+  /* Rich text editor style  */
+  ol {
+		list-style: decimal;
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+		padding-left: 2.25rem;
+
+		li {
+			margin-top: 0.25rem;
+			margin-bottom: 0.25rem;
+		}
+	}
+
+  ul {
+    list-style: disc;
+    padding-left: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+
+    li {
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+
+
 `;
 
 export default GlobalStyles;

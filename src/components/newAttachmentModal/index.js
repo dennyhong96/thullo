@@ -91,7 +91,7 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 	const onError = () => {};
 
 	return (
-		<Modal {...props} onClose={onClose} hasBackDrop={false}>
+		<Modal {...props} onClose={onClose} hasBackDrop={false} isOutlined>
 			<StyledAttachmentModal onSubmit={handleSubmit(onSubmit, onError)}>
 				{/* TITLE INPUT */}
 				<h3>Add an attachment</h3>
@@ -124,10 +124,10 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 					<UploadButton type="button" onChange={handleFile}>
 						Pick a File
 					</UploadButton>
-					<Button type="button" onClick={onClose}>
+					<Button isToggable type="button" onClick={onClose}>
 						Cancel
 					</Button>
-					<Button type="submit">Upload</Button>
+					<Button type="submit">Confirm</Button>
 				</div>
 			</StyledAttachmentModal>
 		</Modal>

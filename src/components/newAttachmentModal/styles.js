@@ -3,6 +3,9 @@ import { StyledImage } from "../image/styles";
 import { StyledInput } from "../input/styles";
 
 export const StyledAttachmentModal = styled.form`
+	display: grid;
+	gap: 1rem;
+
 	& > h3 {
 	}
 
@@ -14,5 +17,8 @@ export const StyledAttachmentModal = styled.form`
 	}
 
 	& > div {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 `;

@@ -7,6 +7,7 @@ import Image from "@/components/image";
 import NewAttachmentModal from "@/components/newAttachmentModal";
 import AttachmentDeleteModal from "@/components/attachmentDeleteModal";
 import { StyledAttachment, StyledAttachments, StyledAttachmentContainer } from "./styles";
+import { IconAdd } from "../icons";
 
 const Attachment = ({ attachment, listId, taskId }) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -67,7 +68,7 @@ const AttachmentsContainer = ({ children, listId, taskId }) => {
 				{/* TITLE ROW */}
 				<div>
 					<span>Attachments</span>
-					<Button isGhost onClick={setIsModalOpen.bind(this, true)}>
+					<Button isGhost Icon={<IconAdd />} onClick={setIsModalOpen.bind(this, true)}>
 						Add
 					</Button>
 				</div>
