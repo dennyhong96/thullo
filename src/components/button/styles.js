@@ -11,8 +11,13 @@ export const StyledButton = styled.button`
 	line-height: 1.5;
 	display: flex;
 	align-items: center;
-
 	position: relative;
+
+	${({ iconOnly }) =>
+		!!iconOnly &&
+		css`
+			padding: 1rem;
+		`}
 
 	${({ isToggable, isActive }) =>
 		isToggable &&

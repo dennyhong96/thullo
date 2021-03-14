@@ -1,18 +1,11 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "react-query";
-import { useRouter } from "next/router";
-import { useForm } from "react-hook-form";
-
 import useBoardData from "@/hooks/useBoardData";
-import generateId from "@/utils/generateId";
-import toSlug from "@/utils/toSlug";
+import useTaskLabels from "@/hooks/useTaskLabels";
 import Button from "@/components/button";
 import Popover from "@/components/popover";
 import Input from "@/components/input";
-import { IconLabels } from "@/components/icons";
 import TaskLabel from "@/components/taskLabel";
-import { StyledColor, StyledColors, StyledLabelPopover } from "./styles";
-import { addTaskLabel } from "@/lib/api";
+import { IconLabels } from "@/components/icons";
+import { StyledColor, StyledColors, StyledLabelPopover, StyledAvailableLabels } from "./styles";
 
 const COLORS = [
 	"#219653",
@@ -30,75 +23,14 @@ const COLORS = [
 ];
 
 const LabelPopover = ({ listId, taskId, labels, ...props }) => {
-	const [selectedColor, setSelectedColor] = useState("");
-	const [label, setLabel] = useState("");
-
-	const client = useQueryClient();
-	const router = useRouter();
-	const boardSlug = router.query.slug;
-
-	// DESCRIPTION
-	const mutation = useMutation(
-		// DB
-		({ id, slug, label, selectedColor }) => {
-			return addTaskLabel({ boardSlug, listId, taskId, id, slug, label, selectedColor });
-		},
-		// LOCAL CACHE
-		{
-			onMutate({ id, slug, label, selectedColor }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
-					return {
-						...board,
-						lists: board.lists.map(list =>
-							list.id === listId
-								? {
-										...list,
-										tasks: list.tasks.map(task =>
-											task.id === taskId
-												? {
-														...task,
-														labels: [
-															{
-																id,
-																createdAt: {
-																	seconds: Date.now(),
-																},
-															},
-															...(task.labels ?? []),
-														],
-												  }
-												: { ...task },
-										),
-								  }
-								: { ...list },
-						),
-						labels: [
-							{
-								id,
-								slug,
-								name: label,
-								selectedColor,
-								createdAt: {
-									seconds: Date.now(),
-								},
-							},
-							...(board.labels ?? []),
-						],
-					};
-				});
-			},
-		},
-	);
-
-	const { register, handleSubmit } = useForm();
-	const onSubmit = ({ label }) => {
-		const id = generateId();
-		const slug = toSlug(label);
-		mutation.mutate({ id, slug, label, selectedColor });
-		setSelectedColor("");
-		setLabel("");
-	};
-	const onError = () => {};
+	const {
+		register,
+		handleSubmit,
+		selectedColor,
+		setSelectedColor,
+		label,
+		setLabel,
+	} = useTaskLabels({ listId, taskId });
 
 	const { data: board } = useBoardData();
 
@@ -110,7 +42,7 @@ const LabelPopover = ({ listId, taskId, labels, ...props }) => {
 				</Button>
 			}
 		>
-			<StyledLabelPopover onSubmit={handleSubmit(onSubmit, onError)}>
+			<StyledLabelPopover onSubmit={handleSubmit}>
 				<h3>Label</h3>
 				<p>Select a name and a color</p>
 
@@ -122,7 +54,7 @@ const LabelPopover = ({ listId, taskId, labels, ...props }) => {
 					onChange={evt => setLabel(evt.target.value)}
 				/>
 
-				{/*  */}
+				{/* LABEL COLORS */}
 				<StyledColors>
 					{COLORS.map(color => (
 						<StyledColor
@@ -135,22 +67,29 @@ const LabelPopover = ({ listId, taskId, labels, ...props }) => {
 				</StyledColors>
 
 				{/* AVAILABLE LABELS */}
-				<div className="">
+				<StyledAvailableLabels>
 					<p>
 						<IconLabels /> Available
 					</p>
 
 					{/* FILTER OUT LABELS ALREADY ON THIS TASK */}
-					<div className="">
+					<div>
 						{board?.labels
 							?.filter(lab => !labels?.find(label => label.id === lab.id))
 							?.map(label => (
-								<TaskLabel label={label} key={label.id} />
+								<TaskLabel
+									key={label.id}
+									label={label}
+									id={label.id}
+									listId={listId}
+									taskId={taskId}
+									isAppendable
+								/>
 							))}
 					</div>
-				</div>
+				</StyledAvailableLabels>
 
-				{/*  */}
+				{/* ADD BUTTON */}
 				<Button type="submit">Add</Button>
 			</StyledLabelPopover>
 		</Popover>

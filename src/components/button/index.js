@@ -4,7 +4,7 @@ import { StyledButton } from "./styles";
 
 const Button = forwardRef(({ children, Icon, ...props }, ref) => {
 	return (
-		<StyledButton ref={ref} {...props}>
+		<StyledButton ref={ref} iconOnly={!!Icon && !children} {...props}>
 			{!!Icon && Icon}
 			{!!children && <span>{children}</span>}
 		</StyledButton>

@@ -1,5 +1,7 @@
 import styled, { css } from "styled-components";
 
+import { StyledTaskLabel } from "@/components/taskLabel/styles";
+
 export const StyledLabelPopover = styled.form`
 	width: 25rem;
 	display: grid;
@@ -28,4 +30,31 @@ export const StyledColor = styled.div`
 			box-shadow: 0 0 0 2px ${theme.colors.textLightest};
 			transform: scale(1.1);
 		`}
+`;
+
+export const StyledAvailableLabels = styled.div`
+	/* Title */
+	& > p {
+		display: flex;
+		align-items: center;
+
+		& > svg {
+			height: 2rem;
+			width: 2rem;
+		}
+	}
+
+	/* Label container */
+	& > div {
+		display: flex;
+		flex-wrap: wrap;
+
+		& > ${StyledTaskLabel}:not(:last-of-type) {
+			margin-bottom: 0.5rem;
+
+			&:not(:last-of-type) {
+				margin-right: 0.5rem;
+			}
+		}
+	}
 `;
