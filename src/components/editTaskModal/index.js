@@ -7,12 +7,12 @@ import Comment from "@/components/comment";
 import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
-import Popover from "@/components/popover";
 import UploadButton from "@/components/uploadButotn";
 import useTaskCover from "@/hooks/useTaskCover";
 import { StyledButton } from "@/components/button/styles";
-import { IconMembers, IconLabels, IconImage } from "@/components/icons";
+import { IconMembers, IconImage } from "@/components/icons";
 import TaskDescription from "@/components/taskDescripiton";
+import LabelPopover from "@/components/labelPopover";
 import { StyledEditTaskModalBody } from "./styles";
 
 const StyledActions = styled.div`
@@ -101,22 +101,16 @@ const EditTaskModal = ({
 						<StyledActions>
 							{/* ACTIONS */}
 							<span>actions</span>
+
+							{/* ADD / REMOVE MEMBERS */}
 							<Button isToggable Icon={<IconMembers />}>
 								Members
 							</Button>
 
-							{/*  */}
-							<Popover
-								Trigger={
-									<Button isToggable Icon={<IconLabels />}>
-										Labels
-									</Button>
-								}
-							>
-								<div>hi</div>
-							</Popover>
+							{/* ADD / REMOVE LABELS */}
+							<LabelPopover listId={listId} taskId={taskId} />
 
-							{/*  */}
+							{/* ADD COVER */}
 							<UploadButton isToggable Icon={<IconImage />} onChange={handleTaskCover}>
 								Cover
 							</UploadButton>

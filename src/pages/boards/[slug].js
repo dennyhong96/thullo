@@ -22,6 +22,8 @@ const Boards = () => {
 
 	if (isLoading) return <p>Loading...</p>;
 
+	console.log(board);
+
 	return (
 		<DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
 			<Droppable droppableId="task-lists" direction="horizontal" type="LISTS">
