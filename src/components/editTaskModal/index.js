@@ -13,7 +13,9 @@ import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
 import Editor from "@/components/editor";
-import { IconEdit } from "@/components/icons";
+import { IconEdit, IconMembers, IconLabels, IconImage } from "@/components/icons";
+import { StyledButton } from "@/components/button/styles";
+import Popover from "@/components/popover";
 import { StyledEditTaskModalBody } from "./styles";
 
 const StyledDescription = styled.div`
@@ -31,9 +33,20 @@ const StyledDescriptioContent = styled.div`
 	padding: 2rem;
 `;
 
+const StyledActions = styled.div`
+	display: grid;
+	gap: 1rem;
+
+	${StyledButton} {
+		width: 100%;
+		height: max-content;
+	}
+`;
+
 const EditTaskModal = ({
 	children,
 	listId,
+	listTitle,
 	taskId,
 	title,
 	comments,
@@ -150,7 +163,7 @@ const EditTaskModal = ({
 						<div className="">
 							{/* TITLE */}
 							<h3>{title}</h3>
-							<p>In list:</p>
+							<p>In list: {listTitle}</p>
 
 							{/* DESCRIPTION */}
 							<StyledDescription>
@@ -205,13 +218,29 @@ const EditTaskModal = ({
 						</div>
 
 						{/* SIDEBAR */}
-						<div className="">
+						<StyledActions>
 							{/* ACTIONS */}
 							<span>actions</span>
-							<Button>Members</Button>
-							<Button>Labels</Button>
-							<Button>Cover</Button>
-						</div>
+							<Button isToggable Icon={<IconMembers />}>
+								Members
+							</Button>
+
+							{/*  */}
+							<Popover
+								Trigger={
+									<Button isToggable Icon={<IconLabels />}>
+										Labels
+									</Button>
+								}
+							>
+								<div>hi</div>
+							</Popover>
+
+							{/*  */}
+							<Button isToggable Icon={<IconImage />}>
+								Cover
+							</Button>
+						</StyledActions>
 					</div>
 				</div>
 			</StyledEditTaskModalBody>

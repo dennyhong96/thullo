@@ -31,7 +31,7 @@ class MyDocument extends Document {
 		return (
 			<Html>
 				<Head>
-					<meta charset="utf-8" />
+					<meta charSet="utf-8" />
 
 					<link rel="preconnect" href="https://fonts.gstatic.com" />
 					<link

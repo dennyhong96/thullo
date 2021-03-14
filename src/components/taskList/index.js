@@ -11,7 +11,7 @@ import TaskCard from "@/components/taskCard";
 import TaskListInner from "@/components/taskListInner";
 import { StyledList } from "./styles";
 
-const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => {
+const TaskList = forwardRef(({ index, listId, listTitle, listSlug, title, tasks }, ref) => {
 	// STATES
 	const [isAdding, setIsAdding] = useState(false);
 	const [taskTitle, setTaskTitle] = useState("");
@@ -70,7 +70,13 @@ const TaskList = forwardRef(({ index, listId, listSlug, title, tasks }, ref) => 
 								ref={provider.innerRef}
 							>
 								{tasks?.map((task, idx) => (
-									<TaskCard key={task.id} index={idx} listId={listId} {...task} />
+									<TaskCard
+										key={task.id}
+										index={idx}
+										listId={listId}
+										listTitle={listTitle}
+										{...task}
+									/>
 								))}
 								{provider.placeholder}
 							</TaskListInner>
