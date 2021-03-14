@@ -11,6 +11,7 @@ const TaskCard = ({
 	listTitle,
 	id: taskId,
 	title,
+	cover,
 	comments,
 	attachments,
 	description,
@@ -44,6 +45,7 @@ const TaskCard = ({
 				listTitle={listTitle}
 				taskId={taskId}
 				title={title}
+				cover={cover}
 				comments={comments}
 				attachments={attachments}
 				description={description}

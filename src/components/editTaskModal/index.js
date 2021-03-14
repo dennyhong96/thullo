@@ -1,11 +1,7 @@
-import { useMutation, useQueryClient } from "react-query";
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import styled from "styled-components";
 
-import { createComment, editTaskDescription } from "@/lib/api";
-import generateId from "@/utils/generateId";
+import useTaskComment from "@/hooks/useTaskComment";
+import useDescriptionEditor from "@/hooks/useDescriptionEditor";
 import Image from "@/components/image";
 import Modal from "@/components/modal";
 import Comment from "@/components/comment";
@@ -13,9 +9,11 @@ import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
 import Editor from "@/components/editor";
-import { IconEdit, IconMembers, IconLabels, IconImage } from "@/components/icons";
-import { StyledButton } from "@/components/button/styles";
 import Popover from "@/components/popover";
+import UploadButton from "@/components/uploadButotn";
+import useTaskCover from "@/hooks/useTaskCover";
+import { StyledButton } from "@/components/button/styles";
+import { IconEdit, IconMembers, IconLabels, IconImage } from "@/components/icons";
 import { StyledEditTaskModalBody } from "./styles";
 
 const StyledDescription = styled.div`
@@ -45,122 +43,48 @@ const StyledActions = styled.div`
 
 const EditTaskModal = ({
 	children,
+	// List -
 	listId,
 	listTitle,
+	// Task -
 	taskId,
+	cover,
 	title,
 	comments,
 	attachments,
 	description,
 	...props
 }) => {
-	const client = useQueryClient();
-	const router = useRouter();
-	const boardSlug = router.query.slug;
+	// HANDLES TASK COMMENT STATE AND MUTATION
+	const { commentInput, setCommentInput, register, handleSubmit } = useTaskComment({
+		listId,
+		taskId,
+	});
 
-	const commentMutation = useMutation(
-		// DB
-		({ id, comment }) => {
-			return createComment({ boardSlug, listId, taskId, id, comment });
-		},
-		// LOCAL CACHE
-		{
-			onMutate({ id, comment }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
-					return {
-						...board,
-						lists: board.lists.map(list =>
-							list.id === listId
-								? {
-										...list,
-										tasks: list.tasks.map(task =>
-											task.id === taskId
-												? {
-														...task,
-														comments: [
-															{
-																id,
-																body: comment,
-																createdAt: {
-																	seconds: Date.now(),
-																},
-															},
-															...(task.comments ?? []),
-														],
-												  }
-												: { ...task },
-										),
-								  }
-								: { ...list },
-						),
-					};
-				});
-			},
-		},
-	);
+	// HANDLES TASK DESCRIPTION STATE AND MUTATION
+	const {
+		isEditorOpen,
+		setIsEditorOpen,
+		setDescription,
+		taskDescription,
+		handleUpdateDescription,
+	} = useDescriptionEditor({ description, listId, taskId });
 
-	// DESCRIPTION
-	const descriptionMutation = useMutation(
-		// DB
-		({ description }) => {
-			return editTaskDescription({ boardSlug, listId, taskId, description });
-		},
-		// LOCAL CACHE
-		{
-			onMutate({ description }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
-					return {
-						...board,
-						lists: board.lists.map(list =>
-							list.id === listId
-								? {
-										...list,
-										tasks: list.tasks.map(task =>
-											task.id === taskId
-												? {
-														...task,
-														description,
-												  }
-												: { ...task },
-										),
-								  }
-								: { ...list },
-						),
-					};
-				});
-			},
-		},
-	);
-
-	// COMMENT INPT FORM
-	const [commentInput, setCommentInput] = useState("");
-	const { register, handleSubmit } = useForm();
-	const onSubmit = ({ comment }) => {
-		const id = generateId();
-		commentMutation.mutate({ id, comment });
-		setCommentInput("");
-	};
-	const onError = () => {};
-
-	// EDITOR
-	const [isEditorOpen, setIsEditorOpen] = useState(false);
-	const [taskDescription, setDescription] = useState(
-		description || "<p>Click 'Edit' to edit description.</p>",
-	);
-	const handleUpdateDescription = () => {
-		setIsEditorOpen(false);
-		if (taskDescription === description) return;
-		descriptionMutation.mutate({ description: taskDescription });
-	};
+	// HANDLES TASK COVER UPLOAD
+	const { fileSrc, handleTaskCover } = useTaskCover({ listId, taskId });
 
 	return (
 		<Modal {...props} size="lg">
 			<StyledEditTaskModalBody>
 				<div>
-					<Image aspectRatio="21.1%" src={`http://via.placeholder.com/1280x200?text=cover`} />
-					<div className="">
+					{/* TASK COVER IMAGE */}
+					<Image
+						aspectRatio="21.1%"
+						src={cover?.src || fileSrc || `http://via.placeholder.com/1280x200?text=cover`}
+					/>
+					<div>
 						{/* MAIN */}
-						<div className="">
+						<div>
 							{/* TITLE */}
 							<h3>{title}</h3>
 							<p>In list: {listTitle}</p>
@@ -202,7 +126,7 @@ const EditTaskModal = ({
 							{/* COMMENTS INPUT */}
 							<CommentInput
 								name="comment"
-								onSubmit={handleSubmit(onSubmit, onError)}
+								onSubmit={handleSubmit}
 								ref={register}
 								onChange={evt => setCommentInput(evt.target.value)}
 							>
@@ -237,9 +161,9 @@ const EditTaskModal = ({
 							</Popover>
 
 							{/*  */}
-							<Button isToggable Icon={<IconImage />}>
+							<UploadButton isToggable Icon={<IconImage />} onChange={handleTaskCover}>
 								Cover
-							</Button>
+							</UploadButton>
 						</StyledActions>
 					</div>
 				</div>
