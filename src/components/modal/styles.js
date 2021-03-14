@@ -24,6 +24,13 @@ export const StyledModal = styled.div`
 			}
 		`}
 
+	${({ isOutlined }) =>
+		isOutlined &&
+		css`
+			border: 1px solid ${({ theme }) => theme.colors.textLight};
+		`}
+
+
 	/* CLOSE BUTTON */
 	& > ${StyledButton} {
 		position: absolute;

@@ -57,7 +57,7 @@ const AttachmentDeleteModal = ({
 	};
 
 	return (
-		<Modal {...props} onClose={onClose}>
+		<Modal {...props} onClose={onClose} isOutlined>
 			<StyledAttachmentDelete>
 				<h3>Delete &quot;{title}&quot;</h3>
 				<p>Are you sure you want to delete attachment &quot;{title}&quot;</p>

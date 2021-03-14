@@ -199,8 +199,22 @@ export const createTask = async ({ boardSlug, listSlug, id, title }) => {
 			.set({
 				title,
 				slug: taskSlug,
+				description: "<p>Click 'Edit' to edit description.</p>",
 			}),
 	]);
+};
+
+// EDIT TASK DESCRIPTION
+export const editTaskDescription = async ({ boardSlug, listId, taskId, description }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.set({ description }, { merge: true });
 };
 
 // ADD A COMMENT TO A TASK

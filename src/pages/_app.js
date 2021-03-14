@@ -7,7 +7,9 @@ import Header from "@/components/header";
 import GlobalStyles from "@/styles/globalStyles";
 import theme from "@/styles/theme";
 
+// VENDOR CSS
 import "react-toastify/dist/ReactToastify.css";
+import "react-quill/dist/quill.snow.css";
 
 function MyApp({ Component, pageProps }) {
 	const client = new QueryClient();
