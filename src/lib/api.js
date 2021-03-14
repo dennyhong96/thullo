@@ -294,6 +294,7 @@ export const createTaskAttachment = async ({ boardSlug, listId, taskId, id, titl
 				title,
 				slug: attachmentTitleSlug,
 				attachmentPath: filePath,
+				fileType: file.type,
 				createdAt: firebase.firestore.Timestamp.now(),
 			}),
 	]);

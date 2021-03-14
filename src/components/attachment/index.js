@@ -1,18 +1,23 @@
 import { Fragment, useState } from "react";
 
-import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
 import formatDate from "@/utils/formatDate";
+import handleDownload from "@/utils/handleDownload";
 import Button from "@/components/button";
 import Image from "@/components/image";
 import NewAttachmentModal from "@/components/newAttachmentModal";
 import { StyledAttachment, StyledAttachments, StyledAttachmentContainer } from "./styles";
-import handleDownload from "@/utils/handleDownload";
 
 const Attachment = ({ attachment }) => {
 	return (
 		<StyledAttachment>
 			{/* ATTACHMENT IMAGE */}
-			<Image aspectRatio="66.25%" src={attachment.attachmentSrc || IMAGE_PLACEHOLDER_SRC} />
+			<Image
+				aspectRatio="66.25%"
+				src={
+					(attachment.fileType.startsWith("image") && attachment.attachmentSrc) ||
+					`http://via.placeholder.com/420x300?text=${attachment.slug}`
+				}
+			/>
 
 			{/* ATTACHMENT INFO */}
 			<div>
@@ -22,7 +27,7 @@ const Attachment = ({ attachment }) => {
 					<Button
 						isToggable
 						onClick={handleDownload.bind(this, {
-							fileName: "ttt.jpg",
+							fileName: `${attachment.slug}.${attachment.fileType.split("/")[1]}`,
 							url: attachment.attachmentSrc,
 						})}
 					>
