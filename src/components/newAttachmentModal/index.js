@@ -1,19 +1,18 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
 
+import { createTaskAttachment } from "@/lib/api";
+import toSlug from "@/utils/toSlug";
 import toBase64 from "@/utils/toBase64";
-import { IMAGE_PLACEHOLDER_SRC } from "@/lib/constants";
+import generateId from "@/utils/generateId";
 import Image from "@/components/image";
 import Modal from "@/components/modal";
 import Button from "@/components/button";
 import Input from "@/components/input";
 import UploadButton from "@/components/uploadButotn";
 import { StyledAttachmentModal } from "./styles";
-import { useMutation, useQueryClient } from "react-query";
-import toSlug from "@/utils/toSlug";
-import { useRouter } from "next/router";
-import generateId from "@/utils/generateId";
-import { createTaskAttachment } from "@/lib/api";
 
 const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 	const [attachmentTitle, setAttachmentTitle] = useState("");
@@ -25,6 +24,9 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 		const uploadedFile = evt.target.files?.[0];
 		if (!uploadedFile) return;
 		setFile(uploadedFile);
+
+		// Only set preview src if file is an image
+		if (!uploadedFile.type.startsWith("image")) return;
 		const dataSrc = await toBase64(uploadedFile);
 		setImageSrc(dataSrc);
 	};
@@ -57,6 +59,7 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 																title,
 																slug: toSlug(title),
 																// attachmentPath: filePath,
+																fileType: file.type,
 																attachmentSrc: imageSrc,
 																createdAt: {
 																	seconds: Date.now(),
@@ -80,6 +83,10 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 	const onSubmit = ({ title }) => {
 		const id = generateId();
 		mutation.mutate({ id, title });
+		setFile(null);
+		setAttachmentTitle("");
+		setImageSrc("");
+		onClose();
 	};
 	const onError = () => {};
 
@@ -96,7 +103,21 @@ const NewAttachmentModal = ({ listId, taskId, onClose, ...props }) => {
 					onChange={evt => setAttachmentTitle(evt.target.value)}
 				/>
 
-				<Image aspectRatio="66.25%" src={imageSrc || IMAGE_PLACEHOLDER_SRC} />
+				<Image
+					aspectRatio="66.25%"
+					// If file is image, display preview
+					// Otherwise if there's file chosen, display file name
+					// Display "file" if no file chosen
+					src={
+						(file &&
+							(file.type.startsWith("image")
+								? imageSrc
+								: `http://via.placeholder.com/560x400?text=${toSlug(
+										attachmentTitle || file.name,
+								  )}`)) ||
+						`http://via.placeholder.com/560x400?text=file`
+					}
+				/>
 
 				{/* ACTIONS */}
 				<div>
