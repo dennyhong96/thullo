@@ -19,6 +19,7 @@ const theme = {
 		card: "0px 4px 12px rgba(0, 0, 0, 0.05)",
 	},
 	borderRadius: {
+		color: "4px",
 		button: "8px",
 		card: "12px",
 	},

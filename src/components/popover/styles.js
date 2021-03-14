@@ -4,10 +4,10 @@ export const StyledPopover = styled.div`
 	position: relative;
 `;
 
-export const StyledPopoverBody = styled.div`
+export const StyledPopoverBody = styled.div.attrs(({ left, top }) => ({
+	style: { left, top },
+}))`
 	position: absolute;
-	top: 100%;
-	left: 50%;
 	transform: translate(-50%, 0);
 	background-color: #fff;
 	padding: 2rem;
