@@ -58,9 +58,8 @@ export const listListsByBoard = async ({ boardSlug }) => {
 		lists[id] = { id, ...doc.data() };
 	});
 
-	return {
-		...board,
-		lists: await Promise.all(
+	const [listsInOrder, labels] = await Promise.all([
+		await Promise.all(
 			listsOrder.map(async listId => ({
 				...lists[listId],
 				tasks: await listTasksByList({
@@ -69,7 +68,22 @@ export const listListsByBoard = async ({ boardSlug }) => {
 				}),
 			})),
 		),
+		await listLabelsByBoard({ boardId }),
+	]);
+
+	return {
+		...board,
+		lists: listsInOrder,
+		labels,
 	};
+};
+
+// LIST LABELS BY BOARD
+export const listLabelsByBoard = async ({ boardId }) => {
+	const labels = [];
+	const labelSnapshots = await db.collection("boards").doc(boardId).collection("labels").get();
+	labelSnapshots.forEach(doc => labels.push({ id: doc.id, ...doc.data() }));
+	return sortByLastest(labels);
 };
 
 // ADD A TASK LIST TO A BOARD
@@ -117,9 +131,10 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 	// Put comments into task
 	return await Promise.all(
 		orderedTasks.map(async task => {
-			const [comments, attachments, src] = await Promise.all([
+			const [comments, attachments, labels, src] = await Promise.all([
 				await listCommentsByTask({ boardId, listId, taskId: task.id }),
 				await listAttachmentsByTask({ boardId, listId, taskId: task.id }),
+				await listLabelsByTask({ boardId, listId, taskId: task.id }),
 				...(task.cover?.path ? [await storage.ref(task.cover.path).getDownloadURL()] : []),
 			]);
 
@@ -127,10 +142,27 @@ export const listTasksByList = async ({ boardSlug, listSlug }) => {
 				...task,
 				comments,
 				attachments,
+				labels,
 				...(src ? { cover: { ...task.cover, src } } : {}),
 			};
 		}),
 	);
+};
+
+// LIST LABELS BY TASK
+export const listLabelsByTask = async ({ boardId, listId, taskId }) => {
+	const labels = [];
+	const labelSnapshots = await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("labels")
+		.get();
+	labelSnapshots.forEach(doc => labels.push({ id: doc.id, ...doc.data() }));
+	return sortByLastest(labels);
 };
 
 // LIST COMMENTS OF A TASK
@@ -172,6 +204,40 @@ const listAttachmentsByTask = async ({ boardId, listId, taskId }) => {
 			attachmentSrc: await storage.ref(attachment.attachmentPath).getDownloadURL(),
 		})),
 	);
+};
+
+// ADD A LABEL TO TASK
+export const addTaskLabel = async ({
+	boardSlug,
+	listId,
+	taskId,
+	id,
+	slug,
+	label,
+	selectedColor,
+}) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	await Promise.all([
+		await db
+			.collection("boards")
+			.doc(boardId)
+			.collection("lists")
+			.doc(listId)
+			.collection("tasks")
+			.doc(taskId)
+			.collection("labels")
+			.doc(id)
+			.set({
+				createdAt: firebase.firestore.Timestamp.now(),
+			}),
+		await db.collection("boards").doc(boardId).collection("labels").doc(id).set({
+			id,
+			slug,
+			name: label,
+			selectedColor,
+			createdAt: firebase.firestore.Timestamp.now(),
+		}),
+	]);
 };
 
 // ADD A NEW TASK TO TASK LIST
