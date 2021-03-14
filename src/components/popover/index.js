@@ -1,14 +1,32 @@
 import useClickOutside from "@/hooks/useClickOutside";
-import { cloneElement, useEffect, useRef, useState } from "react";
+import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
 import { StyledPopover, StyledPopoverBody } from "./styles";
 
 const Popover = ({ Trigger, children }) => {
 	const popoverRef = useRef();
+
+	// In order to safely use ref as effect dependency
 	const popoverContentRef = useRef();
+	const setPopoverContentRef = useCallback(node => {
+		if (popoverContentRef.current) {
+			// Make sure to cleanup any events/references added to the last instance
+		}
+		if (node) {
+			// Check if a node is actually passed. Otherwise node would be null.
+			// You can now do what you need to, addEventListeners, measure, etc.
+		}
+		// Save a reference to the node
+		popoverContentRef.current = node;
+	}, []);
 
 	const [show, setShow] = useState(false);
-	useClickOutside({ refs: [popoverRef, popoverContentRef], callback: setShow.bind(this, false) });
+	useClickOutside({
+		ref: popoverContentRef,
+		callback: setShow.bind(this, false),
+		show,
+	});
 
 	const [rect, setRect] = useState(null);
 	useEffect(() => {
@@ -40,7 +58,7 @@ const Popover = ({ Trigger, children }) => {
 				process.browser &&
 				createPortal(
 					<StyledPopoverBody
-						ref={popoverContentRef}
+						ref={setPopoverContentRef}
 						left={rect ? rect.left + rect.width / 2 : 0}
 						top={rect?.bottom ?? 0}
 					>

@@ -240,6 +240,23 @@ export const addTaskLabel = async ({
 	]);
 };
 
+// ADD AN EXISTING LABEL TO TASK
+export const addExistingLabel = async ({ boardSlug, id, listId, taskId }) => {
+	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
+	await db
+		.collection("boards")
+		.doc(boardId)
+		.collection("lists")
+		.doc(listId)
+		.collection("tasks")
+		.doc(taskId)
+		.collection("labels")
+		.doc(id)
+		.set({
+			createdAt: firebase.firestore.Timestamp.now(),
+		});
+};
+
 // ADD A NEW TASK TO TASK LIST
 export const createTask = async ({ boardSlug, listSlug, id, title }) => {
 	const { id: boardId } = await getBoardBySlug({ slug: boardSlug });
