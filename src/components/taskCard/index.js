@@ -3,8 +3,8 @@ import { Draggable } from "react-beautiful-dnd";
 
 import EditTaskModal from "@/components/editTaskModal";
 import { IconHandle } from "@/components/icons";
+import TaskLabels from "@/components/taskLabels";
 import { StyledTaskCard, StyledDragHandle } from "./styles";
-import TaskLabels from "../taskLabels";
 
 const TaskCard = ({
 	index,
