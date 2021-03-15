@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 
-import { addExistingLabel } from "@/lib/api";
+import { addExistingLabel } from "@/lib/api/labels";
 import { StyledTaskLabel } from "./styles";
 
 const TaskLabel = ({ label, id, listId, taskId, isAppendable = false }) => {

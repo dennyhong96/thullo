@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 
-import { editTaskDescription } from "@/lib/api";
+import { editTaskDescription } from "@/lib/api/tasks";
 
 const useDescriptionEditor = ({ description, listId, taskId }) => {
 	const client = useQueryClient();

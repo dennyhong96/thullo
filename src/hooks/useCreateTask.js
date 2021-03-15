@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 
-import { createTask } from "@/lib/api";
+import { createTask } from "@/lib/api/tasks";
 import toSlug from "@/utils/toSlug";
 
 const useCreateTask = ({ listSlug, listId }) => {

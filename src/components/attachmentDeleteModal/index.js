@@ -1,6 +1,6 @@
 import Button from "@/components/button";
 import Modal from "@/components/modal";
-import { deleteAttachment } from "@/lib/api";
+import { deleteAttachment } from "@/lib/api/attachments";
 import { useRouter } from "next/router";
 import { useMutation, useQueryClient } from "react-query";
 import { StyledAttachmentDelete } from "./styles";

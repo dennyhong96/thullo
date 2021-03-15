@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "react-query";
 
-import { listBoards } from "@/lib/api";
+import { listBoards } from "@/lib/api/boards";
 import Avatar from "@/components/avatar";
 import BoardCard from "@/components/boardCard";
 import Button from "@/components/button";

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { useForm } from "react-hook-form";
 
-import { createTaskAttachment } from "@/lib/api";
+import { createTaskAttachment } from "@/lib/api/attachments";
 import toSlug from "@/utils/toSlug";
 import toBase64 from "@/utils/toBase64";
 import generateId from "@/utils/generateId";

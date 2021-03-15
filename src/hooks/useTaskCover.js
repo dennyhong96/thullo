@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import toBase64 from "@/utils/toBase64";
-import { uploadTaskCover } from "@/lib/api";
+import { uploadTaskCover } from "@/lib/api/tasks";
 
 const useTaskCover = ({ listId, taskId }) => {
 	const [file, setFile] = useState(null);

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useQuery } from "react-query";
 
-import { listListsByBoard } from "@/lib/api";
+import { listListsByBoard } from "@/lib/api/lists";
 
 const useBoardData = () => {
 	const router = useRouter();
