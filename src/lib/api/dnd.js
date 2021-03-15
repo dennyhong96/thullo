@@ -52,8 +52,6 @@ export const reorderTaskList = async ({
 		.get()
 		.then(doc => ({ id: doc.id, ...doc.data() }));
 
-	console.log(" Get the task", { id, ...taskData });
-
 	const [newList] = await Promise.all([
 		// Get newList
 		await db
@@ -82,8 +80,6 @@ export const reorderTaskList = async ({
 			.doc(id)
 			.set({ ...taskData }),
 	]);
-
-	console.log("newList", newList);
 
 	// Re-order new list
 	const newListReordered = [...newList.order];

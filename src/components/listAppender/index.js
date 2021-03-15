@@ -1,75 +1,33 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { useMutation, useQueryClient } from "react-query";
-import { useForm } from "react-hook-form";
-
-import { createList } from "@/lib/api/lists";
-import generateId from "@/utils/generateId";
-import toSlug from "@/utils/toSlug";
+import useCreateList from "@/hooks/useCreateList";
 import Button from "@/components/button";
 import { IconAdd } from "@/components/icons";
 import Input from "@/components/input";
 import { StyledList } from "./styles";
 
 const ListAppender = () => {
-	const router = useRouter();
-	const boardSlug = router.query.slug;
-	const client = useQueryClient();
-
-	// STATES
-	const [isAdding, setIsAdding] = useState(false);
-	const [taskTitle, setTaskTitle] = useState("");
-
-	const mutation = useMutation(createList, {
-		// OPTIMISTIC UI
-		onMutate({ id, title }) {
-			const slug = toSlug(title);
-			client.setQueryData(["listsByBoard", boardSlug], board => ({
-				...board,
-				lists: [
-					...(board.lists || []),
-					{
-						id,
-						title,
-						slug,
-					},
-				],
-				order: [...(board.order || []), id],
-			}));
-		},
-	});
-
-	const { register, handleSubmit } = useForm();
-	const onSubmit = ({ title }) => {
-		const id = generateId();
-		mutation.mutate({ boardSlug, id, title });
-
-		// Clear  & close title input
-		setTaskTitle("");
-		setIsAdding(false);
-	};
-	const onError = error => console.error(error);
+	const {
+		register,
+		handleSubmit,
+		taskTitle,
+		handleTitleInput,
+		isAdding,
+		toggleAddList,
+	} = useCreateList();
 
 	return (
 		<StyledList>
-			{/* ADD TASK INPUT */}
 			{isAdding ? (
-				<form onSubmit={handleSubmit(onSubmit, onError)}>
-					<Input
-						name="title"
-						ref={register}
-						value={taskTitle}
-						onChange={evt => setTaskTitle(evt.target.value)}
-					/>
+				<form onSubmit={handleSubmit}>
+					<Input name="title" ref={register} value={taskTitle} onChange={handleTitleInput} />
 					<div>
-						<Button type="button" onClick={setIsAdding.bind(this, false)} isGhost>
+						<Button type="button" onClick={toggleAddList} isGhost>
 							Cancel
 						</Button>
 						<Button type="submit">Create</Button>
 					</div>
 				</form>
 			) : (
-				<Button Icon={<IconAdd />} isToggable onClick={setIsAdding.bind(this, true)}>
+				<Button Icon={<IconAdd />} isToggable onClick={toggleAddList}>
 					Add a new list
 				</Button>
 			)}

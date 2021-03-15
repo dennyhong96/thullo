@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 
-import Image from "@/components/image";
 import EditTaskModal from "@/components/editTaskModal";
 import { IconHandle } from "@/components/icons";
 import { StyledTaskCard, StyledDragHandle } from "./styles";
@@ -36,11 +35,11 @@ const TaskCard = ({
 							<IconHandle />
 						</StyledDragHandle>
 
-						{cover && <Image aspectRatio="60%" src={cover.src} />}
-
-						<TaskLabels labels={labels} />
-
+						{/* TITLE */}
 						<div>{title}</div>
+
+						{/* LABELS */}
+						<TaskLabels labels={labels} />
 					</StyledTaskCard>
 				)}
 			</Draggable>
