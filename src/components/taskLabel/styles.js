@@ -5,6 +5,11 @@ export const StyledTaskLabel = styled.span`
 	border-radius: ${({ theme }) => theme.borderRadius.button};
 	background-color: ${({ bg }) => bg};
 
+	font-weight: 500;
+	font-size: 1rem;
+	line-height: 1.4;
+	letter-spacing: -0.035em;
+
 	${({ isAppendable }) =>
 		isAppendable &&
 		css`

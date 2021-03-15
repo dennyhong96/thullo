@@ -1,6 +1,7 @@
 import firebase from "@/lib/firebase";
 import toSlug from "@/utils/toSlug";
 import sortByLastest from "@/utils/sortByLatest";
+import generateId from "@/utils/generateId";
 
 const db = firebase.firestore();
 const storage = firebase.storage();
@@ -11,16 +12,56 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 	const fileExt = cover.type.split("/")[1];
 	const filePath = `/boards/${titleSlug}.${fileExt}`;
 
+	const defaultLists = [
+		{
+			id: generateId(),
+			title: "Backlog",
+			slug: toSlug("Backlog"),
+			order: [],
+		},
+		{
+			id: generateId(),
+			title: "In Progress",
+			slug: toSlug("In Progress"),
+			order: [],
+		},
+		{
+			id: generateId(),
+			title: "In Review",
+			slug: toSlug("In Review"),
+			order: [],
+		},
+		{
+			id: generateId(),
+			title: "Completed",
+			slug: toSlug("Completed"),
+			order: [],
+		},
+	];
+
 	await Promise.all([
 		await storage.ref(filePath).put(cover),
-		await db.collection("boards").doc(id).set({
-			title,
-			isPrivate,
-			slug: titleSlug,
-			coverPath: filePath,
-			createdAt: firebase.firestore.Timestamp.now(),
-			order: [],
-		}),
+		await db
+			.collection("boards")
+			.doc(id)
+			.set({
+				title,
+				isPrivate,
+				slug: titleSlug,
+				coverPath: filePath,
+				createdAt: firebase.firestore.Timestamp.now(),
+				order: defaultLists.map(list => list.id),
+			}),
+		await Promise.all(
+			defaultLists.map(list =>
+				db
+					.collection("boards")
+					.doc(id)
+					.collection("lists")
+					.doc(list.id)
+					.set({ title: list.title, slug: list.slug, order: list.order }),
+			),
+		),
 	]);
 };
 

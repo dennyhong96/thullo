@@ -16,11 +16,10 @@ const useDnD = () => {
 				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
 				return reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
 			}
-
 			// LIST DND
 			if (type === "LISTS") {
 				const { listId, newIndex, oldIndex } = props;
-				reorderLists({ boardSlug, listId, newIndex, oldIndex });
+				return reorderLists({ boardSlug, listId, newIndex, oldIndex });
 			}
 		},
 		// Update local cache
