@@ -49,7 +49,7 @@ export const StyledAvailableLabels = styled.div`
 		display: flex;
 		flex-wrap: wrap;
 
-		& > ${StyledTaskLabel}:not(:last-of-type) {
+		& > ${StyledTaskLabel} {
 			margin-bottom: 0.5rem;
 
 			&:not(:last-of-type) {
