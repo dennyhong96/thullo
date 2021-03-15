@@ -4,6 +4,7 @@ import { Draggable } from "react-beautiful-dnd";
 import EditTaskModal from "@/components/editTaskModal";
 import { IconHandle } from "@/components/icons";
 import { StyledTaskCard, StyledDragHandle } from "./styles";
+import TaskLabels from "../taskLabels";
 
 const TaskCard = ({
 	index,
@@ -33,7 +34,12 @@ const TaskCard = ({
 						<StyledDragHandle {...provided.dragHandleProps}>
 							<IconHandle />
 						</StyledDragHandle>
+
+						{/* TITLE */}
 						<div>{title}</div>
+
+						{/* LABELS */}
+						<TaskLabels labels={labels} />
 					</StyledTaskCard>
 				)}
 			</Draggable>
