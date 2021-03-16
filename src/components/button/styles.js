@@ -12,6 +12,12 @@ export const StyledButton = styled.button`
 	display: flex;
 	align-items: center;
 	position: relative;
+	transform: perspective(1px) translateZ(0);
+	transition: ${({ theme }) => theme.transitions.normal};
+
+	&:hover {
+		transform: scale(1.025);
+	}
 
 	${({ iconOnly }) =>
 		!!iconOnly &&
