@@ -19,28 +19,35 @@ const useAddLabel = ({ id, listId, taskId }) => {
 				await client.cancelQueries(["boards", boardSlug]);
 				const prevBoard = client.getQueryData(["boards", boardSlug]);
 
-				client.setQueryData(["boards", boardSlug], board => {
-					return {
-						...board,
-						lists: board.lists.map(list =>
-							list.id === listId
-								? {
-										...list,
-										tasks: list.tasks.map(task =>
-											task.id === taskId
-												? {
-														...task,
-														labels: [
-															{ id, createdAt: { seconds: Date.now() } },
-															...(task.labels ?? []),
-														],
-												  }
-												: { ...task },
-										),
-								  }
-								: { ...list },
-						),
-					};
+				// Wait till next tick for popover to remain open
+				await new Promise(resolve => {
+					setTimeout(() => {
+						client.setQueryData(["boards", boardSlug], board => {
+							return {
+								...board,
+								lists: board.lists.map(list =>
+									list.id === listId
+										? {
+												...list,
+												tasks: list.tasks.map(task =>
+													task.id === taskId
+														? {
+																...task,
+																labels: [
+																	{ id, createdAt: { seconds: Date.now() } },
+																	...(task.labels ?? []),
+																],
+														  }
+														: { ...task },
+												),
+										  }
+										: { ...list },
+								),
+							};
+						});
+
+						resolve();
+					}, 1);
 				});
 
 				return { prevBoard };

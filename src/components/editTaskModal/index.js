@@ -57,7 +57,7 @@ const EditTaskModal = ({
 				<div>
 					{/* TASK COVER IMAGE */}
 					<Image
-						aspectRatio="21.1%"
+						aspectRatio="25%"
 						src={cover?.src || fileSrc || `http://via.placeholder.com/1280x200?text=cover`}
 					/>
 					<div>
