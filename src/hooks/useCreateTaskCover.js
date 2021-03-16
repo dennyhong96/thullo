@@ -5,7 +5,7 @@ import { useState } from "react";
 import toBase64 from "@/utils/toBase64";
 import { uploadTaskCover } from "@/lib/api/tasks";
 
-const useTaskCover = ({ listId, taskId }) => {
+const useCreateTaskCover = ({ listId, taskId }) => {
 	const [file, setFile] = useState(null);
 	const [fileSrc, setFileSrc] = useState("");
 
@@ -19,8 +19,11 @@ const useTaskCover = ({ listId, taskId }) => {
 		},
 		// LOCAL CACHE
 		{
-			onMutate() {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
+			async onMutate() {
+				await client.cancelQueries(["boards", boardSlug]);
+				const prevBoard = client.getQueryData(["boards", boardSlug]);
+
+				client.setQueryData(["boards", boardSlug], board => {
 					return {
 						...board,
 						lists: board.lists.map(list =>
@@ -43,6 +46,15 @@ const useTaskCover = ({ listId, taskId }) => {
 						),
 					};
 				});
+
+				return { prevBoard };
+			},
+			onError(err, _, { prevBoard }) {
+				if (err) console.log(err);
+				client.setQueryData(["boards", boardSlug], prevBoard);
+			},
+			onSettled() {
+				client.invalidateQueries(["boards", boardSlug]);
 			},
 		},
 	);
@@ -63,4 +75,4 @@ const useTaskCover = ({ listId, taskId }) => {
 	};
 };
 
-export default useTaskCover;
+export default useCreateTaskCover;

@@ -11,7 +11,7 @@ import { IconAdd } from "@/components/icons";
 const Home = () => {
 	const [isOpen, setIsOpen] = useState(false);
 
-	const { data: boards, isLoading, error } = useQuery("boards", listBoards);
+	const { data: boards, isLoading, error } = useQuery(["boards"], listBoards);
 
 	if (isLoading) return <p>Loading...</p>;
 	if (error) console.error(error);

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { createComment } from "@/lib/api/comments";
 import generateId from "@/utils/generateId";
 
-const useTaskComment = ({ listId, taskId }) => {
+const useCreateComment = ({ listId, taskId }) => {
 	const client = useQueryClient();
 	const router = useRouter();
 	const boardSlug = router.query.slug;
@@ -18,8 +18,11 @@ const useTaskComment = ({ listId, taskId }) => {
 		},
 		// LOCAL CACHE
 		{
-			onMutate({ id, comment }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
+			async onMutate({ id, comment }) {
+				await client.cancelQueries(["boards", boardSlug]);
+				const prevBoard = client.getQueryData(["boards", boardSlug]);
+
+				client.setQueryData(["boards", boardSlug], board => {
 					return {
 						...board,
 						lists: board.lists.map(list =>
@@ -48,6 +51,15 @@ const useTaskComment = ({ listId, taskId }) => {
 						),
 					};
 				});
+
+				return { prevBoard };
+			},
+			onError(err, _, { prevBoard }) {
+				if (err) console.log(err);
+				client.setQueryData(["boards", boardSlug], prevBoard);
+			},
+			onSettled() {
+				client.invalidateQueries(["boards", boardSlug]);
 			},
 		},
 	);
@@ -73,4 +85,4 @@ const useTaskComment = ({ listId, taskId }) => {
 	};
 };
 
-export default useTaskComment;
+export default useCreateComment;

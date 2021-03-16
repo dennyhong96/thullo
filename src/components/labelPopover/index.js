@@ -1,5 +1,5 @@
 import useBoardData from "@/hooks/useBoardData";
-import useTaskLabels from "@/hooks/useTaskLabels";
+import useCrateLabel from "@/hooks/useCrateLabel";
 import Button from "@/components/button";
 import Popover from "@/components/popover";
 import Input from "@/components/input";
@@ -30,7 +30,7 @@ const LabelPopover = ({ listId, taskId, labels, ...props }) => {
 		setSelectedColor,
 		label,
 		setLabel,
-	} = useTaskLabels({ listId, taskId });
+	} = useCrateLabel({ listId, taskId });
 
 	const { data: board } = useBoardData();
 

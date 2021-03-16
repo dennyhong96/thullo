@@ -11,11 +11,10 @@ const useCreateTask = ({ listSlug, listId }) => {
 
 	const mutation = useMutation(({ id, title }) => createTask({ boardSlug, listSlug, id, title }), {
 		async onMutate({ id, title }) {
-			await client.cancelQueries(["listsByBoard", boardSlug]);
+			await client.cancelQueries(["boards", boardSlug]);
+			const prevBoard = client.getQueryData(["boards", boardSlug]);
 
-			const prevBoard = client.getQueryData(["listsByBoard", boardSlug]);
-
-			client.setQueryData(["listsByBoard", boardSlug], board => {
+			client.setQueryData(["boards", boardSlug], board => {
 				return {
 					...board,
 					lists: board.lists.map(list =>
@@ -38,10 +37,10 @@ const useCreateTask = ({ listSlug, listId }) => {
 		},
 		onError(err, _, { prevBoard }) {
 			if (err) console.log(err);
-			client.setQueryData(["listsByBoard", boardSlug], prevBoard);
+			client.setQueryData(["boards", boardSlug], prevBoard);
 		},
 		onSettled() {
-			client.invalidateQueries(["listsByBoard", boardSlug]);
+			client.invalidateQueries(["boards", boardSlug]);
 		},
 	});
 

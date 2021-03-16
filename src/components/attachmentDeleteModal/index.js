@@ -1,8 +1,6 @@
 import Button from "@/components/button";
 import Modal from "@/components/modal";
-import { deleteAttachment } from "@/lib/api/attachments";
-import { useRouter } from "next/router";
-import { useMutation, useQueryClient } from "react-query";
+import useDeleteAttachment from "@/hooks/useDeleteAttachment";
 import { StyledAttachmentDelete } from "./styles";
 
 const AttachmentDeleteModal = ({
@@ -14,47 +12,13 @@ const AttachmentDeleteModal = ({
 	taskId,
 	...props
 }) => {
-	const router = useRouter();
-	const boardSlug = router.query.slug;
-	const client = useQueryClient();
-	const mutation = useMutation(
-		// DB
-		({ boardSlug, listId, taskId, attachmentId }) => {
-			return deleteAttachment({ boardSlug, listId, taskId, attachmentId, attachmentPath });
-		},
-		// LOCAL CACHE
-		{
-			onMutate({ boardSlug, listId, taskId, attachmentId }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
-					return {
-						...board,
-						lists: board.lists.map(list =>
-							list.id === listId
-								? {
-										...list,
-										tasks: list.tasks.map(task =>
-											task.id === taskId
-												? {
-														...task,
-														attachments: task.attachments.filter(
-															attachment => attachment.id !== attachmentId,
-														),
-												  }
-												: { ...task },
-										),
-								  }
-								: { ...list },
-						),
-					};
-				});
-			},
-		},
-	);
-
-	const handleDelete = () => {
-		mutation.mutate({ boardSlug, listId, taskId, attachmentId });
-		onClose();
-	};
+	const { handleDelete } = useDeleteAttachment({
+		listId,
+		taskId,
+		attachmentId,
+		attachmentPath,
+		onClose,
+	});
 
 	return (
 		<Modal {...props} onClose={onClose} isOutlined>

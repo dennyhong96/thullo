@@ -18,10 +18,10 @@ const useCreateList = () => {
 
 	const mutation = useMutation(createList, {
 		async onMutate({ id, title }) {
-			await client.cancelQueries(["listsByBoard", boardSlug]);
-			const prevBoard = client.getQueryData(["listsByBoard", boardSlug]);
+			await client.cancelQueries(["boards", boardSlug]);
+			const prevBoard = client.getQueryData(["boards", boardSlug]);
 
-			client.setQueryData(["listsByBoard", boardSlug], board => ({
+			client.setQueryData(["boards", boardSlug], board => ({
 				...board,
 				lists: [...(board.lists || []), { id, title, slug: toSlug(title) }],
 				order: [...(board.order || []), id],
@@ -31,10 +31,10 @@ const useCreateList = () => {
 		},
 		onError(err, _, { prevBoard }) {
 			if (err) console.log(err);
-			client.setQueryData(["listsByBoard", boardSlug], prevBoard);
+			client.setQueryData(["boards", boardSlug], prevBoard);
 		},
 		onSettled() {
-			client.invalidateQueries(["listsByBoard", boardSlug]);
+			client.invalidateQueries(["boards", boardSlug]);
 		},
 	});
 

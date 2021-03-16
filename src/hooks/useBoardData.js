@@ -8,9 +8,9 @@ const useBoardData = () => {
 	const boardSlug = router.query.slug;
 
 	const { data, error, isLoading } = useQuery(
-		["listsByBoard", boardSlug],
+		["boards", boardSlug],
 		() => listListsByBoard({ boardSlug }),
-		{ enabled: !!boardSlug },
+		{ enabled: !!boardSlug, staleTime: 500 },
 	);
 
 	return {
