@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 
 import firebase from "@/lib/firebase";
+import { syncUser } from "@/lib/api/users";
 
 const auth = firebase.auth();
 const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
@@ -11,6 +12,7 @@ const INITIAL_STATE = {
 	uid: null,
 	displayName: null,
 	email: null,
+	photoURL: null,
 };
 
 const reducer = (state, action) => {
@@ -45,7 +47,7 @@ export const FirebaseAuthProvider = ({ children }) => {
 		auth.onAuthStateChanged(async user => {
 			if (user) {
 				// LOGOUT FROM HUBSPOT FIRST
-				const { uid, displayName, email } = user;
+				const { uid, displayName, email, photoURL } = user;
 				localStorage.setItem("FIREBASE_AUTH_UID", uid);
 				dispatch({
 					type: "AUTHENTICATED",
@@ -53,8 +55,11 @@ export const FirebaseAuthProvider = ({ children }) => {
 						uid,
 						displayName,
 						email,
+						photoURL,
 					},
 				});
+
+				await syncUser({ uid, displayName, email, photoURL });
 			} else {
 				localStorage.removeItem("FIREBASE_AUTH_UID");
 				dispatch({
@@ -78,6 +83,6 @@ export const FirebaseAuthProvider = ({ children }) => {
 };
 
 export const useFirebaseAuth = () => {
-	const { uid, displayName, email, signin, signout } = useContext(FirebaseAuthContext);
-	return { uid, displayName, email, signin, signout };
+	const { uid, displayName, email, photoURL, signin, signout } = useContext(FirebaseAuthContext);
+	return { uid, displayName, email, photoURL, signin, signout };
 };

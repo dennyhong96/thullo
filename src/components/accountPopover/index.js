@@ -7,13 +7,13 @@ import Button from "@/components/button";
 import { StyledAccount, StyledAccountDropdown } from "./styles";
 
 const AccountPopover = () => {
-	const { displayName, signout } = useFirebaseAuth();
+	const { displayName, photoURL, signout } = useFirebaseAuth();
 
 	return (
 		<Popover
 			Trigger={
 				<StyledAccount>
-					<Avatar />
+					<Avatar src={photoURL} />
 					<span>{displayName}</span>
 				</StyledAccount>
 			}

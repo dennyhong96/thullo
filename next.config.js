@@ -10,6 +10,11 @@ module.exports = {
 		return config;
 	},
 	images: {
-		domains: ["images.unsplash.com", "via.placeholder.com", "firebasestorage.googleapis.com"],
+		domains: [
+			"images.unsplash.com",
+			"via.placeholder.com",
+			"firebasestorage.googleapis.com",
+			"lh3.googleusercontent.com",
+		],
 	},
 };
