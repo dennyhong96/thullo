@@ -17,8 +17,11 @@ const useDescriptionEditor = ({ description, listId, taskId }) => {
 		},
 		// LOCAL CACHE
 		{
-			onMutate({ description }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
+			async onMutate({ description }) {
+				await client.cancelQueries(["boards", boardSlug]);
+				const prevBoard = client.getQueryData(["boards", boardSlug]);
+
+				client.setQueryData(["boards", boardSlug], board => {
 					return {
 						...board,
 						lists: board.lists.map(list =>
@@ -38,6 +41,15 @@ const useDescriptionEditor = ({ description, listId, taskId }) => {
 						),
 					};
 				});
+
+				return { prevBoard };
+			},
+			onError(err, _, { prevBoard }) {
+				if (err) console.log(err);
+				client.setQueryData(["boards", boardSlug], prevBoard);
+			},
+			onSettled() {
+				client.invalidateQueries(["boards", boardSlug]);
 			},
 		},
 	);

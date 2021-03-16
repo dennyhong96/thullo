@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "react-query";
 
 import { reorderLists, reorderTaskList } from "@/lib/api/dnd";
 
-const useDnD = () => {
+const useDragNDrop = () => {
 	const router = useRouter();
 	const boardSlug = router.query.slug;
 	const client = useQueryClient();
@@ -16,19 +16,21 @@ const useDnD = () => {
 				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
 				return reorderTaskList({ boardSlug, taskId, newListId, newIndex, oldListId, oldIndex });
 			}
-
 			// LIST DND
 			if (type === "LISTS") {
 				const { listId, newIndex, oldIndex } = props;
-				reorderLists({ boardSlug, listId, newIndex, oldIndex });
+				return reorderLists({ boardSlug, listId, newIndex, oldIndex });
 			}
 		},
 		// Update local cache
 		{
-			onMutate({ type, props }) {
+			async onMutate({ type, props }) {
+				await client.cancelQueries(["boards", boardSlug]);
+				const prevBoard = client.getQueryData(["boards", boardSlug]);
+
 				if (type === "LISTS") {
 					const { newIndex, oldIndex } = props;
-					return client.setQueryData(["listsByBoard", boardSlug], board => {
+					return client.setQueryData(["boards", boardSlug], board => {
 						const { order } = board;
 
 						// Swap order
@@ -36,6 +38,7 @@ const useDnD = () => {
 						const [listId] = newOrder.splice(oldIndex, 1);
 						newOrder.splice(newIndex, 0, listId);
 
+						// Swap list index
 						const newLists = [...board.lists];
 						const [list] = newLists.splice(oldIndex, 1);
 						newLists.splice(newIndex, 0, list);
@@ -43,71 +46,81 @@ const useDnD = () => {
 						return {
 							...board,
 							order: newOrder,
-							// Swap list index
 							lists: newLists,
 						};
 					});
 				}
 
-				const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
-				client.setQueryData(["listsByBoard", boardSlug], board => {
-					const taskDropped = {
-						...board.lists
-							.find(list => list.id === oldListId)
-							.tasks.find(task => task.id === taskId),
-					};
+				if (type === "TASKS") {
+					const { taskId, newListId, newIndex, oldListId, oldIndex } = props;
+					client.setQueryData(["boards", boardSlug], board => {
+						const taskDropped = {
+							...board.lists
+								.find(list => list.id === oldListId)
+								.tasks.find(task => task.id === taskId),
+						};
 
-					return {
-						...board,
-						lists: board.lists.map(list => {
-							switch (list.id) {
-								// Handle old list
-								case oldListId: {
-									// Moved with in the same list
-									if (oldListId === newListId) {
-										const newTasks = [...list.tasks];
-										const [task] = newTasks.splice(oldIndex, 1);
-										newTasks.splice(newIndex, 0, task);
+						return {
+							...board,
+							lists: board.lists.map(list => {
+								switch (list.id) {
+									// Handle old list
+									case oldListId: {
+										// Moved with in the same list
+										if (oldListId === newListId) {
+											const newTasks = [...list.tasks];
+											const [task] = newTasks.splice(oldIndex, 1);
+											newTasks.splice(newIndex, 0, task);
 
-										const newOrder = [...list.order];
-										const [taskId] = newOrder.splice(oldIndex, 1);
-										newOrder.splice(newIndex, 0, taskId);
+											const newOrder = [...list.order];
+											const [taskId] = newOrder.splice(oldIndex, 1);
+											newOrder.splice(newIndex, 0, taskId);
 
+											return {
+												...list,
+												order: newOrder,
+												tasks: newTasks,
+											};
+										}
+
+										// Moved across lists
 										return {
 											...list,
-											order: newOrder,
-											tasks: newTasks,
+											order: list.order.filter(tId => tId !== taskId),
+											tasks: list.tasks.filter(task => task.id !== taskId),
 										};
 									}
 
-									// Moved across lists
-									return {
-										...list,
-										order: list.order.filter(tId => tId !== taskId),
-										tasks: list.tasks.filter(task => task.id !== taskId),
-									};
+									// Handle new list
+									case newListId: {
+										// Task list could be empty first
+										const newTasks = [...(list.tasks || [])];
+										newTasks.splice(newIndex, 0, taskDropped);
+
+										const newOrder = [...(list.order || [])];
+										newOrder.splice(newIndex, 0, taskId);
+
+										return { ...list, order: newOrder, tasks: newTasks };
+									}
+
+									// Handle other lists
+									default: {
+										return { ...list };
+									}
 								}
+							}),
+						};
+					});
+				}
 
-								// Handle new list
-								case newListId: {
-									// Task list could be empty first
-									const newTasks = [...(list.tasks || [])];
-									newTasks.splice(newIndex, 0, taskDropped);
-
-									const newOrder = [...(list.order || [])];
-									newOrder.splice(newIndex, 0, taskId);
-
-									return { ...list, order: newOrder, tasks: newTasks };
-								}
-
-								// Handle other lists
-								default: {
-									return { ...list };
-								}
-							}
-						}),
-					};
-				});
+				return { prevBoard };
+			},
+			onError(err, _, { prevBoard }) {
+				if (err) console.log(err);
+				client.setQueryData(["boards", boardSlug], prevBoard);
+			},
+			async onSettled() {
+				client.invalidateQueries(["boards", boardSlug]);
 			},
 		},
 	);
@@ -161,4 +174,4 @@ const useDnD = () => {
 	};
 };
 
-export default useDnD;
+export default useDragNDrop;

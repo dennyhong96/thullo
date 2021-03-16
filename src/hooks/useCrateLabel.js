@@ -7,7 +7,7 @@ import { addTaskLabel } from "@/lib/api/labels";
 import generateId from "@/utils/generateId";
 import toSlug from "@/utils/toSlug";
 
-const useTaskLabels = ({ listId, taskId }) => {
+const useCrateLabel = ({ listId, taskId }) => {
 	const [selectedColor, setSelectedColor] = useState("");
 	const [label, setLabel] = useState("");
 
@@ -23,8 +23,11 @@ const useTaskLabels = ({ listId, taskId }) => {
 		},
 		// LOCAL CACHE
 		{
-			onMutate({ id, slug, label, selectedColor }) {
-				client.setQueryData(["listsByBoard", boardSlug], board => {
+			async onMutate({ id, slug, label, selectedColor }) {
+				await client.cancelQueries(["boards", boardSlug]);
+				const prevBoard = client.getQueryData(["boards", boardSlug]);
+
+				client.setQueryData(["boards", boardSlug], board => {
 					return {
 						...board,
 						lists: board.lists.map(list =>
@@ -64,6 +67,15 @@ const useTaskLabels = ({ listId, taskId }) => {
 						],
 					};
 				});
+
+				return { prevBoard };
+			},
+			onError(err, _, { prevBoard }) {
+				if (err) console.log(err);
+				client.setQueryData(["boards", boardSlug], prevBoard);
+			},
+			onSettled() {
+				client.invalidateQueries(["boards", boardSlug]);
 			},
 		},
 	);
@@ -88,4 +100,4 @@ const useTaskLabels = ({ listId, taskId }) => {
 	};
 };
 
-export default useTaskLabels;
+export default useCrateLabel;

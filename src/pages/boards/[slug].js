@@ -1,7 +1,7 @@
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
-import useDnD from "@/hooks/useDnD";
+import useDragNDrop from "@/hooks/useDragNDrop";
 import TaskList from "@/components/taskList";
 import ListAppender from "@/components/listAppender";
 import useBoardData from "@/hooks/useBoardData";
@@ -18,7 +18,7 @@ const Boards = () => {
 	if (error) console.error(error);
 
 	// Handle drag end
-	const { onDragEnd, onDragStart, onDragUpdate } = useDnD();
+	const { onDragEnd, onDragStart, onDragUpdate } = useDragNDrop();
 
 	if (isLoading) return <p>Loading...</p>;
 

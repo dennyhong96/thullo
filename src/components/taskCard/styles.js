@@ -1,5 +1,7 @@
 import styled, { css } from "styled-components";
 
+import { StyledImage } from "@/components/image/styles";
+
 export const StyledDragHandle = styled.div`
 	position: absolute;
 	top: 0;
@@ -31,4 +33,8 @@ export const StyledTaskCard = styled.div`
 		css`
 			color: red;
 		`}
+
+	${StyledImage} {
+		border-radius: ${({ theme }) => theme.borderRadius.card};
+	}
 `;

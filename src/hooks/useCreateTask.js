@@ -10,10 +10,11 @@ const useCreateTask = ({ listSlug, listId }) => {
 	const client = useQueryClient();
 
 	const mutation = useMutation(({ id, title }) => createTask({ boardSlug, listSlug, id, title }), {
-		// OPTIMISTIC UI
-		onMutate({ id, title }) {
-			const slug = toSlug(title);
-			client.setQueryData(["listsByBoard", boardSlug], board => {
+		async onMutate({ id, title }) {
+			await client.cancelQueries(["boards", boardSlug]);
+			const prevBoard = client.getQueryData(["boards", boardSlug]);
+
+			client.setQueryData(["boards", boardSlug], board => {
 				return {
 					...board,
 					lists: board.lists.map(list =>
@@ -23,11 +24,7 @@ const useCreateTask = ({ listSlug, listId }) => {
 									tasks: [
 										// "tasks" could be undefined first
 										...(list.tasks || []),
-										{
-											id,
-											title,
-											slug,
-										},
+										{ id, title, slug: toSlug(title) },
 									],
 									order: [...(list.order || []), id],
 							  }
@@ -35,6 +32,15 @@ const useCreateTask = ({ listSlug, listId }) => {
 					),
 				};
 			});
+
+			return { prevBoard };
+		},
+		onError(err, _, { prevBoard }) {
+			if (err) console.log(err);
+			client.setQueryData(["boards", boardSlug], prevBoard);
+		},
+		onSettled() {
+			client.invalidateQueries(["boards", boardSlug]);
 		},
 	});
 

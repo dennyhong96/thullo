@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import useTaskComment from "@/hooks/useTaskComment";
+import useCreateComment from "@/hooks/useCreateComment";
 import Image from "@/components/image";
 import Modal from "@/components/modal";
 import Comment from "@/components/comment";
@@ -8,7 +8,7 @@ import Button from "@/components/button";
 import CommentInput from "@/components/commentInput";
 import Attachment from "@/components/attachment";
 import UploadButton from "@/components/uploadButotn";
-import useTaskCover from "@/hooks/useTaskCover";
+import useCreateTaskCover from "@/hooks/useCreateTaskCover";
 import { StyledButton } from "@/components/button/styles";
 import { IconMembers, IconImage } from "@/components/icons";
 import TaskDescription from "@/components/taskDescripiton";
@@ -43,13 +43,13 @@ const EditTaskModal = ({
 	...props
 }) => {
 	// HANDLES TASK COMMENT STATE AND MUTATION
-	const { commentInput, setCommentInput, register, handleSubmit } = useTaskComment({
+	const { commentInput, setCommentInput, register, handleSubmit } = useCreateComment({
 		listId,
 		taskId,
 	});
 
 	// HANDLES TASK COVER UPLOAD
-	const { fileSrc, handleTaskCover } = useTaskCover({ listId, taskId });
+	const { fileSrc, handleTaskCover } = useCreateTaskCover({ listId, taskId });
 
 	return (
 		<Modal {...props} size="lg">
