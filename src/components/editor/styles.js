@@ -11,3 +11,10 @@ export const StyledEditor = styled.div`
 		right: 1rem;
 	}
 `;
+
+export const StyledEditorLoader = styled.div`
+	height: 20rem;
+	border-radius: ${({ theme }) => theme.borderRadius.card};
+	border: 1px solid ${({ theme }) => theme.colors.textLightest};
+	box-shadow: ${({ theme }) => theme.boxShadow.card};
+`;

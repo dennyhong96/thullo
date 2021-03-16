@@ -1,10 +1,17 @@
 import dynamic from "next/dynamic";
 
 import Button from "@/components/button";
-import { StyledEditor } from "./styles";
+import { StyledEditor, StyledEditorLoader } from "./styles";
+
+const EditorLoader = () => {
+	return <StyledEditorLoader />;
+};
 
 // ReactQuill doesn't support SSR
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill"), {
+	ssr: false,
+	loading: EditorLoader,
+});
 
 const Editor = ({ value, onChange, onUpdate, updateButtonText = "Confirm" }) => {
 	return (
