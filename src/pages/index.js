@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "react-query";
 
 import { listBoards } from "@/lib/api/boards";
@@ -10,35 +10,36 @@ import { IconAdd } from "@/components/icons";
 
 const Home = () => {
 	const [isOpen, setIsOpen] = useState(false);
-
 	const { data: boards, isLoading, error } = useQuery(["boards"], listBoards);
 
 	if (isLoading) return <p>Loading...</p>;
 	if (error) console.error(error);
 
 	return (
-		<div style={{ padding: "4rem" }}>
-			<Button>Hello</Button>
+		<Fragment>
+			<div style={{ padding: "4rem" }}>
+				<Button>Hello</Button>
 
-			<Button onClick={setIsOpen.bind(this, true)} Icon={<IconAdd />}>
-				Add
-			</Button>
+				<Button onClick={setIsOpen.bind(this, true)} Icon={<IconAdd />}>
+					Add
+				</Button>
 
-			<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
+				<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
 
-			{/* BOARDS */}
-			<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
-				{boards?.map(board => (
-					<BoardCard
-						href={`/boards/${board.slug}`}
-						key={board.id}
-						title={board.title}
-						cover={board.cover}
-						avatars={[<Avatar key={0} />]}
-					/>
-				))}
+				{/* BOARDS */}
+				<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
+					{boards?.map(board => (
+						<BoardCard
+							href={`/boards/${board.slug}`}
+							key={board.id}
+							title={board.title}
+							cover={board.cover}
+							avatars={[<Avatar key={0} />]}
+						/>
+					))}
+				</div>
 			</div>
-		</div>
+		</Fragment>
 	);
 };
 

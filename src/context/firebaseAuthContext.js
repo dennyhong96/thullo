@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
-import { toast } from "react-toastify";
 
 import firebase from "@/lib/firebase";
 
@@ -45,13 +44,6 @@ export const FirebaseAuthProvider = ({ children }) => {
 	useEffect(() => {
 		auth.onAuthStateChanged(async user => {
 			if (user) {
-				if (!user?.email?.endsWith("@beacondigitalmarketing.com")) {
-					// USER NOT USING A BEACON DIGITAL EMAIL ACCOUNT, DELETE IT
-					console.log(`Deleting email ${user.email}...`);
-					toast("Please use your Beacon Digital Marketing gmail account.", { autoClose: 5000 });
-					await user.delete();
-				}
-
 				// LOGOUT FROM HUBSPOT FIRST
 				const { uid, displayName, email } = user;
 				localStorage.setItem("FIREBASE_AUTH_UID", uid);

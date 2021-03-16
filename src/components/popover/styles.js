@@ -1,10 +1,11 @@
+import { motion } from "framer-motion";
 import styled from "styled-components";
 
 export const StyledPopover = styled.div`
 	position: relative;
 `;
 
-export const StyledPopoverBody = styled.div.attrs(({ left, top }) => ({
+export const StyledPopoverBody = styled(motion.div).attrs(({ left, top }) => ({
 	style: { left, top },
 }))`
 	position: absolute;
