@@ -6,9 +6,12 @@ import { createBoard } from "@/lib/api/boards";
 import generateId from "@/utils/generateId";
 import toSlug from "@/utils/toSlug";
 import toBase64 from "@/utils/toBase64";
+import { useFirebaseAuth } from "@/context/firebaseAuthContext";
 
 const useCreateBoard = ({ onBoardCreated }) => {
 	const client = useQueryClient();
+
+	const { uid, displayName, email, photoURL } = useFirebaseAuth();
 
 	// States
 	const [title, setTitle] = useState("");
@@ -19,7 +22,7 @@ const useCreateBoard = ({ onBoardCreated }) => {
 	// React query mutation
 	const mutation = useMutation(
 		({ id, title, isPrivate, cover }) => {
-			return createBoard({ id, title, isPrivate, cover });
+			return createBoard({ id, title, isPrivate, cover, uid });
 		},
 		{
 			async onMutate({ id, title, isPrivate, cover }) {
@@ -38,6 +41,13 @@ const useCreateBoard = ({ onBoardCreated }) => {
 						createdAt: {
 							seconds: Date.now(),
 						},
+						admin: {
+							id: uid,
+							displayName,
+							email,
+							photoURL,
+						},
+						members: [],
 					},
 					...old,
 				]);

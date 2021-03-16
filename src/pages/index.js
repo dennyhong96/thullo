@@ -1,6 +1,7 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "react-query";
 
+import { useFirebaseAuth } from "@/context/firebaseAuthContext";
 import { listBoards } from "@/lib/api/boards";
 import Avatar from "@/components/avatar";
 import BoardCard from "@/components/boardCard";
@@ -10,36 +11,41 @@ import { IconAdd } from "@/components/icons";
 
 const Home = () => {
 	const [isOpen, setIsOpen] = useState(false);
+
 	const { data: boards, isLoading, error } = useQuery(["boards"], listBoards);
+
+	const { uid } = useFirebaseAuth();
 
 	if (isLoading) return <p>Loading...</p>;
 	if (error) console.error(error);
 
-	return (
-		<Fragment>
-			<div style={{ padding: "4rem" }}>
-				<Button>Hello</Button>
+	console.log({ boards });
 
+	return (
+		<div style={{ padding: "4rem" }}>
+			{uid && (
 				<Button onClick={setIsOpen.bind(this, true)} Icon={<IconAdd />}>
 					Add
 				</Button>
+			)}
 
-				<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
+			<NewBoardModal isOpen={isOpen} onClose={setIsOpen.bind(this, false)} />
 
-				{/* BOARDS */}
-				<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
-					{boards?.map(board => (
-						<BoardCard
-							href={`/boards/${board.slug}`}
-							key={board.id}
-							title={board.title}
-							cover={board.cover}
-							avatars={[<Avatar key={0} />]}
-						/>
-					))}
-				</div>
+			{/* BOARDS */}
+			<div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "3rem" }}>
+				{boards?.map(board => (
+					<BoardCard
+						href={`/boards/${board.slug}`}
+						key={board.id}
+						title={board.title}
+						cover={board.cover}
+						avatars={[board.admin, ...board.members].map(member => (
+							<Avatar key={member.id} src={member.photoURL} />
+						))}
+					/>
+				))}
 			</div>
-		</Fragment>
+		</div>
 	);
 };
 

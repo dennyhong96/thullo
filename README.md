@@ -7,3 +7,8 @@ TODO:
 - Check and update all upload accept file types
 - Refactor file uploads into `useFileUpload` hook
 - Refactor api.js with doc and collection refs
+
+BUGS:
+
+- Moving tasks across lists doesn't move sub-collection, e.g. comments, attachments
+- Change popover component's scroll listeners

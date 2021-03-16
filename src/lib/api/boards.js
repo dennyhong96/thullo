@@ -2,12 +2,13 @@ import firebase from "@/lib/firebase";
 import toSlug from "@/utils/toSlug";
 import sortByLastest from "@/utils/sortByLatest";
 import generateId from "@/utils/generateId";
+import { getUserById, listUsersByIds } from "./users";
 
 const db = firebase.firestore();
 const storage = firebase.storage();
 
 // CREATE A NEW BOARD
-export const createBoard = async ({ id, title, isPrivate, cover }) => {
+export const createBoard = async ({ id, title, isPrivate, cover, uid }) => {
 	const titleSlug = toSlug(title);
 	const fileExt = cover.type.split("/")[1];
 	const filePath = `/boards/${titleSlug}.${fileExt}`;
@@ -51,6 +52,8 @@ export const createBoard = async ({ id, title, isPrivate, cover }) => {
 				coverPath: filePath,
 				createdAt: firebase.firestore.Timestamp.now(),
 				order: defaultLists.map(list => list.id),
+				admin: uid,
+				members: [],
 			}),
 		await Promise.all(
 			defaultLists.map(list =>
@@ -82,6 +85,8 @@ export const listBoards = async () => {
 		orderedBoards.map(async board => ({
 			...board,
 			cover: await storage.ref(board.coverPath).getDownloadURL(),
+			admin: await getUserById({ adminId: board.admin }),
+			members: board.members.length ? await listUsersByIds({ memberIds: board.members }) : [],
 		})),
 	);
 };
