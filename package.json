@@ -15,6 +15,7 @@
 		"classnames": "^2.2.6",
 		"firebase": "^8.2.9",
 		"framer-motion": "^3.6.7",
+		"fuse.js": "^6.4.6",
 		"next": "10.0.7",
 		"react": "17.0.1",
 		"react-beautiful-dnd": "^13.0.0",

@@ -41,7 +41,6 @@ const Popover = ({ Trigger, children }) => {
 		if (!popoverRef.current) return;
 
 		function updateRect() {
-			console.log("position updated");
 			setRect(popoverRef.current?.getBoundingClientRect());
 		}
 
@@ -59,6 +58,11 @@ const Popover = ({ Trigger, children }) => {
 		ref: popoverRef,
 	});
 
+	// Popover is out of screen on the left
+	const leftBounded =
+		rect?.left + rect?.width / 2 - popoverContentRef?.current?.getBoundingClientRect().width / 2 <
+		0;
+
 	return (
 		<StyledPopover>
 			{/* POPOVER TRIGGER */}
@@ -71,7 +75,13 @@ const Popover = ({ Trigger, children }) => {
 						{show ? (
 							<StyledPopoverBody
 								ref={setPopoverContentRef}
-								left={rect ? rect.left + rect.width / 2 : 0}
+								left={
+									rect
+										? leftBounded
+											? popoverContentRef.current?.getBoundingClientRect().width / 2
+											: rect.left + rect.width / 2
+										: 0
+								}
 								top={rect?.bottom ?? 0}
 								// Framer Motion
 								initial="initial"

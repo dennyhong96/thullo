@@ -19,8 +19,6 @@ const Home = () => {
 	if (isLoading) return <p>Loading...</p>;
 	if (error) console.error(error);
 
-	console.log({ boards });
-
 	return (
 		<div style={{ padding: "4rem" }}>
 			{uid && (

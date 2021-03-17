@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styled from "styled-components";
 
@@ -5,6 +6,7 @@ import useDragNDrop from "@/hooks/useDragNDrop";
 import TaskList from "@/components/taskList";
 import ListAppender from "@/components/listAppender";
 import useBoardData from "@/hooks/useBoardData";
+import BoardActionRow from "@/components/boardActionsRow";
 
 const StyledContainer = styled.div`
 	overflow-x: auto;
@@ -23,31 +25,36 @@ const Boards = () => {
 	if (isLoading) return <p>Loading...</p>;
 
 	return (
-		<DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
-			<Droppable droppableId="task-lists" direction="horizontal" type="LISTS">
-				{provided => (
-					<StyledContainer {...provided.droppableProps} ref={provided.innerRef}>
-						{/* BACKLOG LIST */}
+		<Fragment>
+			{/* ACTIONS ROW */}
+			<BoardActionRow />
 
-						{board?.lists?.map((list, idx) => (
-							<TaskList
-								key={list.id}
-								index={idx}
-								listId={list.id}
-								listTitle={list.title}
-								title={list.title}
-								tasks={list.tasks}
-								listSlug={list.slug}
-							/>
-						))}
-						{provided.placeholder}
+			<DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
+				<Droppable droppableId="task-lists" direction="horizontal" type="LISTS">
+					{provided => (
+						<StyledContainer {...provided.droppableProps} ref={provided.innerRef}>
+							{/* BACKLOG LIST */}
 
-						{/* LIST APPENDER BUTTON */}
-						<ListAppender />
-					</StyledContainer>
-				)}
-			</Droppable>
-		</DragDropContext>
+							{board?.lists?.map((list, idx) => (
+								<TaskList
+									key={list.id}
+									index={idx}
+									listId={list.id}
+									listTitle={list.title}
+									title={list.title}
+									tasks={list.tasks}
+									listSlug={list.slug}
+								/>
+							))}
+							{provided.placeholder}
+
+							{/* LIST APPENDER BUTTON */}
+							<ListAppender />
+						</StyledContainer>
+					)}
+				</Droppable>
+			</DragDropContext>
+		</Fragment>
 	);
 };
 

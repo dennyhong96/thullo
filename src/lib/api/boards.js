@@ -100,5 +100,16 @@ export const getBoardBySlug = async ({ slug }) => {
 		boards.push({ id: doc.id, ...doc.data() });
 	});
 
-	return boards[0];
+	const board = boards[0];
+	const [cover, admin, members] = await Promise.all([
+		await storage.ref(board.coverPath).getDownloadURL(),
+		getUserById({ adminId: board.admin }),
+		board.members.length ? await listUsersByIds({ memberIds: board.members }) : [],
+	]);
+
+	return { ...board, cover, admin, members };
+};
+
+export const updateVisibility = async ({ boardId, isPrivate }) => {
+	await db.collection("boards").doc(boardId).set({ isPrivate }, { merge: true });
 };

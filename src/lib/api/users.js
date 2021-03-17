@@ -1,4 +1,5 @@
 import firebase from "@/lib/firebase";
+import Fuse from "fuse.js";
 
 const db = firebase.firestore();
 
@@ -31,4 +32,18 @@ export const listUsersByIds = async ({ memberIds }) => {
 		members.push({ id: doc.id, ...doc.data() });
 	});
 	return members;
+};
+
+export const searchUsers = async ({ keyword }) => {
+	const members = [];
+	const snapshots = await db.collection("users").get();
+	snapshots.forEach(doc => {
+		members.push({ id: doc.id, ...doc.data() });
+	});
+
+	const options = { keys: ["email", "displayName"] };
+	const myIndex = Fuse.createIndex(options.keys, members);
+	const fuse = new Fuse(members, options, myIndex);
+
+	return fuse.search(keyword).map(({ item }) => item);
 };

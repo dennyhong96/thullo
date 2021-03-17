@@ -29,7 +29,7 @@ export const createList = async ({ boardSlug, id, title }) => {
 // LIST ALL TASK LISTS OF A BOARD
 export const listListsByBoard = async ({ boardSlug }) => {
 	const board = await getBoardBySlug({ slug: boardSlug });
-	if (!board) return;
+
 	const { id: boardId, order: listsOrder } = board;
 
 	const listSnapshots = await db.collection("boards").doc(boardId).collection("lists").get();
