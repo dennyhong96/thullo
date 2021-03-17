@@ -12,3 +12,11 @@ BUGS:
 
 - Moving tasks across lists doesn't move sub-collection, e.g. comments, attachments
 - Change popover component's scroll listeners
+
+DOCS:
+
+[Firestore](https://firebase.google.com/docs/firestore/query-data/queries)
+[React Query](https://react-query.tanstack.com/overview)
+[Next.js](https://nextjs.org/docs/advanced-features/dynamic-import)
+[Framer Motion](https://www.framer.com/api/motion/animate-presence/)
+[Fuse.js](https://fusejs.io/examples.html#search-object-array)
